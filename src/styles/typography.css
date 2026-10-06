@@ -1,0 +1,103 @@
+#app .text-display,
+#app .text-h1,
+#app .text-h2,
+#app .text-h3,
+#app .text-h4,
+#app .text-body-lg,
+#app .text-body,
+#app .text-body-sm,
+#app .text-caption,
+#app .text-label,
+#app .text-button {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+
+#app .text-display {
+  font-size: clamp(2rem, 1.4rem + 2vw, 3rem) !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+#app .text-h1 {
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem) !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+}
+
+#app .text-h2 {
+  font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem) !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.02em !important;
+}
+
+#app .text-h3 {
+  font-size: clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem) !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+}
+
+#app .text-h4 {
+  font-size: 1.125rem !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+#app .text-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+#app .text-body {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+#app .text-body-sm {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+#app .text-caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--color-text-muted);
+}
+
+#app .text-label {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+}
+
+#app .text-button {
+  font-size: 0.875rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 768px) {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}

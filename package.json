@@ -1,0 +1,28 @@
+{
+  "name": "valu8er",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
+    "@mdi/font": "^7.4.47",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3",
+    "vuetify": "^3.10.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "sass": "^1.93.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.10",
+    "vite-plugin-vuetify": "^2.1.2",
+    "vue-tsc": "^3.1.1"
+  }
+}
