@@ -13,36 +13,38 @@ export const semantic = {
 } as const
 
 export const lightSurfaces = {
-  background: '#F4F6F9',
+  /* Soft cool canvas — not flat white (Countable-style page rhythm) */
+  background: '#F3F6FB',
   surface: '#FFFFFF',
-  surfaceMuted: '#E8EDF3',
+  surfaceMuted: '#EAF0F7',
   surfaceElevated: '#FFFFFF',
   surfaceInverse: '#0B1220',
-  text: '#0F172A',
-  textSecondary: '#475569',
+  text: '#0B1633',
+  textSecondary: '#4B5B74',
   textMuted: '#64748B',
   textInverse: '#F8FAFC',
-  border: 'rgba(15, 23, 42, 0.08)',
-  borderStrong: 'rgba(15, 23, 42, 0.14)',
-  overlay: 'rgba(11, 18, 32, 0.48)',
-  glow: 'rgba(13, 148, 136, 0.14)',
+  border: 'rgba(15, 23, 42, 0.07)',
+  borderStrong: 'rgba(15, 23, 42, 0.12)',
+  overlay: 'rgba(11, 18, 32, 0.45)',
+  glow: 'rgba(13, 148, 136, 0.16)',
   ring: 'rgba(13, 148, 136, 0.28)',
 } as const
 
 export const darkSurfaces = {
-  background: '#0B1220',
-  surface: '#121A2B',
-  surfaceMuted: '#0E1624',
-  surfaceElevated: '#1A2438',
-  surfaceInverse: '#F4F6F9',
+  /* Layered navy — avoid pure black voids */
+  background: '#101826',
+  surface: '#171F2F',
+  surfaceMuted: '#141C2B',
+  surfaceElevated: '#1C2638',
+  surfaceInverse: '#F3F6FB',
   text: '#F1F5F9',
-  textSecondary: '#94A3B8',
-  textMuted: '#7B8A9E',
-  textInverse: '#0F172A',
-  border: 'rgba(148, 163, 184, 0.12)',
-  borderStrong: 'rgba(148, 163, 184, 0.22)',
-  overlay: 'rgba(2, 6, 23, 0.64)',
-  glow: 'rgba(45, 212, 191, 0.10)',
+  textSecondary: '#A3B1C6',
+  textMuted: '#8494AB',
+  textInverse: '#0B1633',
+  border: 'rgba(148, 163, 184, 0.11)',
+  borderStrong: 'rgba(148, 163, 184, 0.2)',
+  overlay: 'rgba(2, 6, 23, 0.58)',
+  glow: 'rgba(45, 212, 191, 0.12)',
   ring: 'rgba(45, 212, 191, 0.36)',
 } as const
 
@@ -54,6 +56,7 @@ export const spacing = {
   4: '1rem',
   5: '1.25rem',
   6: '1.5rem',
+  7: '1.75rem',
   8: '2rem',
   10: '2.5rem',
   12: '3rem',
@@ -78,7 +81,7 @@ export const breakpoints = {
   md: 430,
   tablet: 768,
   desktop: 1024,
-  nav: 1200,
+  nav: 1280,
   lg: 1280,
   xl: 1440,
   xxl: 1600,
@@ -120,13 +123,15 @@ export const motion = {
 export const typography = {
   family:
     '"Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Segoe UI", sans-serif',
-  display: { size: '3rem', line: '1.15', weight: '700', tracking: '-0.03em' },
-  h1: { size: '2.25rem', line: '1.2', weight: '700', tracking: '-0.025em' },
-  h2: { size: '1.75rem', line: '1.25', weight: '650', tracking: '-0.02em' },
-  h3: { size: '1.375rem', line: '1.3', weight: '600', tracking: '-0.015em' },
+  displayFamily:
+    '"Outfit Variable", "Outfit", "Plus Jakarta Sans Variable", sans-serif',
+  display: { size: '3rem', line: '1.12', weight: '700', tracking: '-0.035em' },
+  h1: { size: '2.25rem', line: '1.18', weight: '700', tracking: '-0.03em' },
+  h2: { size: '1.75rem', line: '1.22', weight: '650', tracking: '-0.025em' },
+  h3: { size: '1.375rem', line: '1.28', weight: '600', tracking: '-0.02em' },
   h4: { size: '1.125rem', line: '1.4', weight: '600', tracking: '-0.01em' },
-  bodyLarge: { size: '1.125rem', line: '1.6', weight: '400', tracking: '0' },
-  body: { size: '0.9375rem', line: '1.6', weight: '400', tracking: '0' },
+  bodyLarge: { size: '1.125rem', line: '1.65', weight: '400', tracking: '0' },
+  body: { size: '0.9375rem', line: '1.65', weight: '400', tracking: '0' },
   bodySmall: { size: '0.8125rem', line: '1.55', weight: '400', tracking: '0' },
   caption: { size: '0.75rem', line: '1.4', weight: '500', tracking: '0.01em' },
   label: { size: '0.8125rem', line: '1.4', weight: '550', tracking: '0.01em' },
@@ -183,6 +188,7 @@ export function cssVariables(mode: ThemeMode): Record<string, string> {
     '--space-4': spacing[4],
     '--space-5': spacing[5],
     '--space-6': spacing[6],
+    '--space-7': spacing[7],
     '--space-8': spacing[8],
     '--space-10': spacing[10],
     '--space-12': spacing[12],
@@ -201,6 +207,7 @@ export function cssVariables(mode: ThemeMode): Record<string, string> {
     '--duration-base': motion.durationBase,
     '--duration-slow': motion.durationSlow,
     '--font-sans': typography.family,
+    '--font-display': typography.displayFamily,
   }
 }
 

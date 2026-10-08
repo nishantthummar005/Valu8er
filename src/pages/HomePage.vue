@@ -1,27 +1,37 @@
 <script setup lang="ts">
-import AnalyticsShowcase from '@/components/home/AnalyticsShowcase.vue'
 import AudienceSolutions from '@/components/home/AudienceSolutions.vue'
-import CapabilityGrid from '@/components/home/CapabilityGrid.vue'
+import ConnectedSystem from '@/components/home/ConnectedSystem.vue'
 import FinalCta from '@/components/home/FinalCta.vue'
+import GettingStarted from '@/components/home/GettingStarted.vue'
 import HomeHero from '@/components/home/HomeHero.vue'
+import ImpactStats from '@/components/home/ImpactStats.vue'
+import PillarShowcase from '@/components/home/PillarShowcase.vue'
 import ProblemSolution from '@/components/home/ProblemSolution.vue'
-import ProductShowcase from '@/components/home/ProductShowcase.vue'
-import TrustStrip from '@/components/home/TrustStrip.vue'
-import ValuationVisualization from '@/components/home/ValuationVisualization.vue'
-import WorkflowSection from '@/components/home/WorkflowSection.vue'
+import TestimonialsSection from '@/components/home/TestimonialsSection.vue'
+import TimeRecovery from '@/components/home/TimeRecovery.vue'
 </script>
 
 <template>
   <div class="home-page">
+    <!-- 1. Hero -->
     <HomeHero />
-    <TrustStrip />
+    <!-- 2. Hidden cost / problem -->
     <ProblemSolution />
-    <ProductShowcase />
-    <CapabilityGrid />
-    <ValuationVisualization />
-    <WorkflowSection />
-    <AnalyticsShowcase />
+    <!-- 3. Where the hours go -->
+    <TimeRecovery />
+    <!-- 4. One connected system -->
+    <ConnectedSystem />
+    <!-- 5. Everything modern teams need -->
+    <PillarShowcase />
+    <!-- 6. Built for every practice shape -->
     <AudienceSolutions />
+    <!-- 7. Getting started / migration -->
+    <GettingStarted />
+    <!-- 8. Testimonials -->
+    <TestimonialsSection />
+    <!-- 9. Impact stats -->
+    <ImpactStats />
+    <!-- 10. Final CTA -->
     <FinalCta />
   </div>
 </template>

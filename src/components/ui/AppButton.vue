@@ -117,7 +117,7 @@ const tag = computed(() => (props.to ? RouterLink : 'button'))
 
 .app-button--primary {
   background: linear-gradient(180deg, var(--color-brand-bright), var(--color-brand-primary));
-  color: #062321;
+  color: #fff;
   box-shadow: var(--shadow-xs);
 }
 

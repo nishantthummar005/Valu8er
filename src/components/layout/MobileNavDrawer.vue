@@ -92,9 +92,11 @@ const onKeydown = (event: KeyboardEvent) => {
         aria-label="Site navigation"
         @keydown="onKeydown"
       >
+        <div class="mobile-drawer__glow" aria-hidden="true" />
+
         <header class="mobile-drawer__header">
           <RouterLink to="/" class="mobile-drawer__brand" @click="emit('close')">
-            <AppLogo variant="lockup" :size="28" />
+            <AppLogo variant="lockup" :size="40" />
           </RouterLink>
           <AppButton
             class="mobile-drawer__close"
@@ -125,8 +127,13 @@ const onKeydown = (event: KeyboardEvent) => {
                   class="mobile-drawer__child"
                   :class="{ 'is-active': isNavActive(route.path, child.to) }"
                 >
-                  <AppIcon v-if="child.icon" :name="child.icon" :size="16" />
-                  {{ child.label }}
+                  <span class="mobile-drawer__child-icon">
+                    <AppIcon v-if="child.icon" :name="child.icon" :size="16" />
+                  </span>
+                  <span>
+                    <strong>{{ child.label }}</strong>
+                    <small v-if="child.description">{{ child.description }}</small>
+                  </span>
                 </RouterLink>
               </div>
             </div>
@@ -161,7 +168,8 @@ const onKeydown = (event: KeyboardEvent) => {
 .mobile-drawer__overlay {
   position: absolute;
   inset: 0;
-  background: var(--color-overlay);
+  background: color-mix(in srgb, #020617 55%, transparent);
+  backdrop-filter: blur(4px);
 }
 
 .mobile-drawer__panel {
@@ -175,10 +183,21 @@ const onKeydown = (event: KeyboardEvent) => {
   border-left: 1px solid var(--color-border);
   box-shadow: var(--shadow-lg);
   animation: drawer-in var(--duration-slow) var(--ease-out);
+  overflow: hidden;
+}
+
+.mobile-drawer__glow {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 14rem;
+  height: 14rem;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-primary) 18%, transparent), transparent 70%);
+  pointer-events: none;
 }
 
 .mobile-drawer__header,
 .mobile-drawer__actions {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -192,9 +211,10 @@ const onKeydown = (event: KeyboardEvent) => {
 }
 
 .mobile-drawer__nav {
+  position: relative;
   display: grid;
   align-content: start;
-  gap: 0.15rem;
+  gap: 0.2rem;
   flex: 1;
   overflow: auto;
   padding: var(--space-2) var(--space-4) var(--space-6);
@@ -206,14 +226,14 @@ const onKeydown = (event: KeyboardEvent) => {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: 2.75rem;
-  padding: 0 var(--space-3);
+  min-height: 2.85rem;
+  padding: 0.35rem 0.85rem;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: transparent;
   color: var(--color-text);
   font: inherit;
-  font-weight: 550;
+  font-weight: 600;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
@@ -222,18 +242,48 @@ const onKeydown = (event: KeyboardEvent) => {
 .mobile-drawer__item.is-active,
 .mobile-drawer__child.is-active {
   color: var(--color-brand-primary);
-  background: color-mix(in srgb, var(--color-brand-primary) 8%, transparent);
+  background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 18%, transparent);
 }
 
 .mobile-drawer__children {
   display: grid;
-  gap: 0.15rem;
-  padding: 0 0 var(--space-2) var(--space-3);
+  gap: 0.2rem;
+  padding: 0.15rem 0 var(--space-2) 0.35rem;
 }
 
 .mobile-drawer__child {
   justify-content: flex-start;
   color: var(--color-text-secondary);
+}
+
+.mobile-drawer__child-icon {
+  display: inline-flex;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+}
+
+.mobile-drawer__child span:last-child {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.mobile-drawer__child strong {
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.mobile-drawer__child small {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.3;
 }
 
 .mobile-drawer__item--toggle :deep(.app-icon) {
@@ -247,12 +297,13 @@ const onKeydown = (event: KeyboardEvent) => {
 .mobile-drawer__actions {
   flex-direction: column;
   border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface-muted) 65%, var(--color-surface));
 }
 
 @keyframes drawer-in {
   from {
     opacity: 0;
-    transform: translateX(12px);
+    transform: translateX(14px);
   }
 
   to {
@@ -264,6 +315,10 @@ const onKeydown = (event: KeyboardEvent) => {
 @media (prefers-reduced-motion: reduce) {
   .mobile-drawer__panel {
     animation: none;
+  }
+
+  .mobile-drawer__item--toggle :deep(.app-icon) {
+    transition: none;
   }
 }
 </style>

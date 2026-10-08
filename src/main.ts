@@ -4,6 +4,7 @@ import { registerPlugins } from './plugins'
 import { applyCssVariables } from './themes/tokens'
 
 import '@fontsource-variable/plus-jakarta-sans'
+import '@fontsource-variable/outfit'
 import '@mdi/font/css/materialdesignicons.css'
 import './styles/main.scss'
 

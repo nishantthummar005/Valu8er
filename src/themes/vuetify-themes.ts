@@ -56,7 +56,7 @@ export const vuetifyThemes = {
       'on-surface-variant': darkSurfaces.textSecondary,
       primary: brand.bright,
       'primary-darken-1': brand.primary,
-      'on-primary': '#062321',
+      'on-primary': '#FFFFFF',
       secondary: '#94A3B8',
       'on-secondary': '#0B1220',
       accent: brand.highlight,

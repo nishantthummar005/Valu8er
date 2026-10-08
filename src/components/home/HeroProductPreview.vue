@@ -76,7 +76,7 @@ import SparkLine from './SparkLine.vue'
   border-radius: var(--radius-xl);
   background:
     linear-gradient(180deg, rgba(26, 36, 56, 0.96), #121a2b 38%),
-    #0b1220;
+    #171f2f;
   color: #f1f5f9;
   box-shadow: var(--shadow-lg);
   transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);

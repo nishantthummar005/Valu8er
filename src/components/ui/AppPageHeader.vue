@@ -22,7 +22,6 @@ defineProps<{
   display: grid;
   gap: var(--space-3);
   min-width: 0;
-  max-width: 46rem;
 }
 
 .app-page-header :deep(*) {

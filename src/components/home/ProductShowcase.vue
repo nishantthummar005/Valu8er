@@ -16,13 +16,15 @@ const { visible } = useReveal(root)
 
 <template>
   <section ref="root" class="showcase" :class="{ 'is-visible': visible }">
-    <AppContainer size="xl" class="showcase__intro">
-      <p class="section-kicker">The workspace</p>
-      <h2 class="text-h1">A valuation view that stays readable.</h2>
-      <p class="text-body">
-        Company context, range, trends, and the next action—kept together so the conclusion is
-        easier to explain. Figures below are illustrative demo data.
-      </p>
+    <AppContainer size="xl">
+      <div class="showcase__intro">
+        <p class="section-kicker">The workspace</p>
+        <h2 class="text-h1">A valuation file that stays readable end to end.</h2>
+        <p class="text-body">
+          Company context, range, trends, and next actions — kept together so the conclusion is easier
+          to explain, review, and reuse. Figures below are illustrative demo data.
+        </p>
+      </div>
     </AppContainer>
 
     <AppContainer size="xl">
@@ -107,14 +109,14 @@ const { visible } = useReveal(root)
 <style scoped>
 .showcase {
   padding-block: var(--space-16);
-  background: #0b1220;
+  background: #171f2f;
   color: #f1f5f9;
 }
 
 .showcase__intro {
   display: grid;
   gap: var(--space-4);
-  max-width: 40rem;
+  width: 100%;
   margin-bottom: var(--space-8);
 }
 

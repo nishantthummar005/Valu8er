@@ -72,7 +72,6 @@ const { visible } = useReveal(root)
 .analytics__copy {
   display: grid;
   gap: var(--space-4);
-  max-width: 34rem;
   justify-items: start;
 }
 

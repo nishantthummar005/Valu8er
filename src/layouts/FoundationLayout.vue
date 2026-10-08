@@ -6,7 +6,7 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue'
 <template>
   <div class="foundation-layout">
     <header class="foundation-layout__bar">
-      <AppLogo variant="lockup" :size="32" />
+      <AppLogo variant="lockup" :size="48" />
       <ThemeToggle />
     </header>
     <main id="main" class="foundation-layout__main">

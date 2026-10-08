@@ -86,7 +86,6 @@ const { visible } = useReveal(root)
 .valuation header {
   display: grid;
   gap: var(--space-3);
-  max-width: 38rem;
 }
 
 .section-kicker {

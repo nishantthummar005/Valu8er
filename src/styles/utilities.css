@@ -1,24 +1,26 @@
 .app-container {
-  width: min(100%, var(--container-lg));
+  width: 100%;
+  max-width: var(--container-lg);
   margin-inline: auto;
-  padding-inline: var(--space-4);
+  padding-inline: clamp(1.25rem, 4.5vw, 2rem);
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .app-container--sm {
-  width: min(100%, var(--container-sm));
+  max-width: var(--container-sm);
 }
 
 .app-container--md {
-  width: min(100%, var(--container-md));
+  max-width: var(--container-md);
 }
 
 .app-container--xl {
-  width: min(100%, var(--container-xl));
+  max-width: var(--container-xl);
 }
 
 .app-container--xxl {
-  width: min(100%, var(--container-xxl));
+  max-width: var(--container-xxl);
 }
 
 .app-section {
@@ -112,7 +114,7 @@
   .app-container--md,
   .app-container--xl,
   .app-container--xxl {
-    padding-inline: var(--space-6);
+    padding-inline: clamp(1.75rem, 5vw, 2.75rem);
   }
 
   .app-grid--2,
@@ -132,7 +134,7 @@
   .app-container--md,
   .app-container--xl,
   .app-container--xxl {
-    padding-inline: var(--space-8);
+    padding-inline: clamp(2rem, 5.5vw, 3.5rem);
   }
 
   .app-grid--3,
@@ -153,6 +155,6 @@
   .app-container--md,
   .app-container--xl,
   .app-container--xxl {
-    padding-inline: var(--space-10);
+    padding-inline: clamp(2.5rem, 6vw, 4.5rem);
   }
 }

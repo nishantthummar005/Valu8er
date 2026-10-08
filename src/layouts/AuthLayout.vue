@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { useRoute } from 'vue-router'
-import AuthHeader from '@/components/auth/AuthHeader.vue'
+import AppHeader from '@/components/layout/AppHeader.vue'
 import AuthProductPreview from '@/components/auth/AuthProductPreview.vue'
 
 const route = useRoute()
@@ -18,26 +18,32 @@ watch(
 <template>
   <div class="auth-layout">
     <div class="auth-layout__backdrop" aria-hidden="true" />
-    <AuthHeader />
-    <div class="auth-layout__body">
-      <aside class="auth-layout__stage">
-        <div class="auth-layout__copy">
-          <p>Valuation intelligence</p>
-          <h2>Make better decisions with a clearer view of value.</h2>
-          <p class="auth-layout__lede">
-            Bring the company, the range, and the reasoning into one workspace — then keep the
-            conclusion attached to the file.
-          </p>
-        </div>
-        <AuthProductPreview class="auth-layout__preview" />
-      </aside>
-      <main id="main" class="auth-layout__panel">
-        <router-view v-slot="{ Component }">
-          <transition name="scale" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </main>
+    <AppHeader />
+    <div class="auth-layout__shell">
+      <div class="auth-layout__body">
+        <aside class="auth-layout__stage">
+          <div class="auth-layout__stage-inner">
+            <div class="auth-layout__copy">
+              <p>Valuation intelligence</p>
+              <h2>Make better decisions with a clearer view of value.</h2>
+              <p class="auth-layout__lede">
+                Bring the company, the range, and the reasoning into one workspace — then keep the
+                conclusion attached to the file.
+              </p>
+            </div>
+            <AuthProductPreview class="auth-layout__preview" />
+          </div>
+        </aside>
+        <main id="main" class="auth-layout__panel">
+          <div class="auth-layout__panel-inner">
+            <router-view v-slot="{ Component }">
+              <transition name="scale" mode="out-in">
+                <component :is="Component" />
+              </transition>
+            </router-view>
+          </div>
+        </main>
+      </div>
     </div>
   </div>
 </template>
@@ -63,19 +69,35 @@ watch(
   pointer-events: none;
 }
 
-.auth-layout__body {
+.auth-layout__shell {
   position: relative;
+  width: 100%;
+  max-width: var(--container-xl);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4.5vw, 2rem);
+  padding-block-end: var(--space-6);
+  box-sizing: border-box;
+}
+
+.auth-layout__body {
   display: grid;
+  min-width: 0;
 }
 
 .auth-layout__stage {
   display: none;
 }
 
+.auth-layout__stage-inner {
+  display: grid;
+  gap: var(--space-8);
+  width: min(100%, 26rem);
+  margin-inline: auto;
+}
+
 .auth-layout__copy {
   display: grid;
   gap: var(--space-4);
-  max-width: 28rem;
 }
 
 .auth-layout__copy p:first-child {
@@ -109,6 +131,13 @@ watch(
   align-items: flex-start;
   min-width: 0;
   padding: var(--space-6) var(--space-4) var(--space-10);
+}
+
+.auth-layout__panel-inner {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 34rem;
 }
 
 .auth-layout :deep(.auth-form) {
@@ -157,7 +186,16 @@ watch(
   line-height: 1.45;
 }
 
+.auth-layout :deep(.auth-preview) {
+  width: 100%;
+}
+
 @media (min-width: 768px) {
+  .auth-layout__shell {
+    padding-inline: clamp(1.75rem, 5vw, 2.75rem);
+    padding-block-end: var(--space-8);
+  }
+
   .auth-layout__panel {
     padding: var(--space-10) var(--space-8) var(--space-12);
   }
@@ -168,18 +206,28 @@ watch(
 }
 
 @media (min-width: 1024px) {
+  .auth-layout__shell {
+    padding-inline: clamp(2rem, 5.5vw, 3.5rem);
+    padding-block-end: var(--space-10);
+  }
+
   .auth-layout__body {
-    grid-template-columns: minmax(20rem, 0.45fr) minmax(24rem, 0.55fr);
-    min-height: calc(100vh - 4rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: calc(100vh - 5.5rem);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
   }
 
   .auth-layout__stage {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: var(--space-8);
-    min-height: calc(100vh - 4rem);
-    padding: var(--space-10) var(--space-8);
+    align-items: center;
+    min-height: calc(100vh - 5.5rem);
+    padding: clamp(2.75rem, 5vw, 4.5rem) clamp(2.5rem, 5vw, 4rem);
     background:
       radial-gradient(circle at 20% 0%, rgba(20, 184, 166, 0.16), transparent 36%),
       #0b1220;
@@ -189,13 +237,22 @@ watch(
 
   .auth-layout__panel {
     align-items: center;
-    padding-block: var(--space-10);
+    justify-content: center;
+    padding: clamp(2.75rem, 5vw, 4.5rem) clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .auth-layout__panel-inner {
+    max-width: 28rem;
   }
 }
 
 @media (min-width: 1280px) {
-  .auth-layout__stage {
-    padding-inline: var(--space-12);
+  .auth-layout__shell {
+    padding-inline: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .auth-layout__stage-inner {
+    width: min(100%, 28rem);
   }
 }
 

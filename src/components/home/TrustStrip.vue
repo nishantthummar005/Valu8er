@@ -8,18 +8,19 @@ const root = ref<HTMLElement | null>(null)
 const { visible } = useReveal(root)
 
 const items = [
-  { label: 'Valuation', icon: 'valuation' },
+  { label: 'Workflow', icon: 'workflow' },
   { label: 'Analysis', icon: 'analysis' },
-  { label: 'Benchmarking', icon: 'benchmarking' },
-  { label: 'Insights', icon: 'insights' },
-  { label: 'Reporting', icon: 'reports' },
+  { label: 'Multiples', icon: 'valuation' },
+  { label: 'Documents', icon: 'documents' },
+  { label: 'Reports', icon: 'reports' },
+  { label: 'AWS security', icon: 'security' },
 ]
 </script>
 
 <template>
   <section ref="root" class="trust-strip" :class="{ 'is-visible': visible }">
     <AppContainer size="xl">
-      <p class="text-h4">Built for clearer financial decisions.</p>
+      <p class="text-h4">Built for clearer, faster, defensible valuations.</p>
       <ul>
         <li v-for="item in items" :key="item.label">
           <AppIcon :name="item.icon" :size="18" />

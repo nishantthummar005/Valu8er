@@ -18,35 +18,10 @@ export type FooterColumn = {
 
 export const primaryNav: NavItem[] = [
   { label: 'Home', to: '/' },
-  {
-    label: 'Platform',
-    to: '/platform',
-    children: [
-      { label: 'Valuation', to: '/platform/valuation', icon: 'valuation', description: 'Structured value assessment' },
-      { label: 'Analysis', to: '/platform/analysis', icon: 'analysis', description: 'Financial review workspace' },
-      { label: 'Benchmarking', to: '/platform/benchmarking', icon: 'benchmarking', description: 'Peer comparison views' },
-      { label: 'Reports', to: '/platform/reports', icon: 'reports', description: 'Export-ready summaries' },
-    ],
-  },
-  {
-    label: 'Solutions',
-    to: '/solutions',
-    children: [
-      { label: 'Business Owners', to: '/solutions/business-owners', icon: 'company', description: 'Clarity for ownership decisions' },
-      { label: 'Advisors', to: '/solutions/advisors', icon: 'users', description: 'Shared client context' },
-      { label: 'Finance Teams', to: '/solutions/finance-teams', icon: 'workflow', description: 'Internal valuation workflows' },
-    ],
-  },
-  {
-    label: 'Resources',
-    to: '/resources',
-    children: [
-      { label: 'Guides', to: '/resources/guides', icon: 'documents', description: 'Practical walkthroughs' },
-      { label: 'Insights', to: '/resources/insights', icon: 'insights', description: 'Notes from the field' },
-      { label: 'FAQs', to: '/resources/faq', icon: 'dashboard', description: 'Common questions' },
-    ],
-  },
+  { label: 'About Us', to: '/about' },
+  { label: 'Platform', to: '/platform' },
   { label: 'Pricing', to: '/pricing' },
+  { label: 'Contact Us', to: '/contact' },
 ]
 
 export const footerColumns: FooterColumn[] = [
@@ -54,9 +29,8 @@ export const footerColumns: FooterColumn[] = [
     title: 'Product',
     links: [
       { label: 'Platform', to: '/platform' },
-      { label: 'Valuation', to: '/platform/valuation' },
-      { label: 'Analysis', to: '/platform/analysis' },
-      { label: 'Reports', to: '/platform/reports' },
+      { label: 'Pricing', to: '/pricing' },
+      { label: 'Get Started', to: '/get-started' },
     ],
   },
   {
@@ -78,7 +52,7 @@ export const footerColumns: FooterColumn[] = [
   {
     title: 'Company',
     links: [
-      { label: 'About', to: '/about' },
+      { label: 'About Us', to: '/about' },
       { label: 'Contact', to: '/contact' },
     ],
   },
@@ -93,6 +67,18 @@ export const legalLinks = [
 export const socialPlaceholders = [
   { label: 'LinkedIn (placeholder)', icon: 'mdi-linkedin' },
   { label: 'X (placeholder)', icon: 'mdi-twitter' },
+]
+
+export const footerContact = {
+  email: 'info@valu8er.com',
+  phone: '1-833-825-8837',
+  phoneDisplay: '1-833-VALU8ER',
+}
+
+export const footerTrust = [
+  { label: 'AWS cloud security', icon: 'security' },
+  { label: 'Team workflow', icon: 'workflow' },
+  { label: 'Report-ready outputs', icon: 'reports' },
 ]
 
 export function isNavActive(path: string, to: string) {

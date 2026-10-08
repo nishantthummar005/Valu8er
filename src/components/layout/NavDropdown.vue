@@ -86,7 +86,7 @@ onUnmounted(() => {
       @keydown="onKeydown"
     >
       <span>{{ item.label }}</span>
-      <AppIcon name="mdi-chevron-down" :size="16" />
+      <AppIcon name="mdi-chevron-down" :size="15" />
     </button>
     <div
       v-if="open"
@@ -95,6 +95,7 @@ onUnmounted(() => {
       class="nav-dropdown__panel"
       role="menu"
     >
+      <div class="nav-dropdown__panel-glow" aria-hidden="true" />
       <RouterLink
         v-for="child in item.children"
         :key="child.to"
@@ -107,10 +108,11 @@ onUnmounted(() => {
         <span v-if="child.icon" class="nav-dropdown__icon">
           <AppIcon :name="child.icon" :size="18" />
         </span>
-        <span>
-          <span class="text-label">{{ child.label }}</span>
-          <span v-if="child.description" class="text-caption">{{ child.description }}</span>
+        <span class="nav-dropdown__copy">
+          <span class="nav-dropdown__label">{{ child.label }}</span>
+          <span v-if="child.description" class="nav-dropdown__desc">{{ child.description }}</span>
         </span>
+        <span class="nav-dropdown__arrow" aria-hidden="true">→</span>
       </RouterLink>
     </div>
   </div>
@@ -124,28 +126,34 @@ onUnmounted(() => {
 .nav-dropdown__trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  min-height: 2.75rem;
-  padding: 0 var(--space-2);
+  gap: 0.15rem;
+  min-height: 2.2rem;
+  padding: 0 0.65rem;
   border: 0;
+  border-radius: 999px;
   background: transparent;
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 550;
+  font-size: 0.8125rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
 }
 
 .nav-dropdown__trigger:hover,
-.nav-dropdown__trigger.is-open,
-.nav-dropdown__trigger.is-active {
+.nav-dropdown__trigger.is-open {
   color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
 }
 
 .nav-dropdown__trigger.is-active {
   color: var(--color-brand-primary);
-  box-shadow: inset 0 -2px 0 var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
 }
 
 .nav-dropdown__trigger :deep(.app-icon) {
@@ -158,60 +166,143 @@ onUnmounted(() => {
 
 .nav-dropdown__panel {
   position: absolute;
-  top: calc(100% - 0.25rem);
-  left: 0;
+  top: calc(100% + 0.65rem);
+  left: 50%;
   z-index: 30;
   display: grid;
-  gap: 0.15rem;
-  min-width: 17.5rem;
+  gap: 0.2rem;
+  min-width: 19rem;
   padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  border: 1px solid color-mix(in srgb, var(--color-border) 90%, var(--color-brand-primary));
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  box-shadow:
+    0 18px 40px color-mix(in srgb, #020617 18%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 8%, transparent);
+  backdrop-filter: blur(16px);
+  transform: translateX(-50%);
+  animation: panel-in var(--duration-fast) var(--ease-out);
+  overflow: hidden;
+}
+
+.nav-dropdown__panel-glow {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 8rem;
+  height: 8rem;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-primary) 18%, transparent), transparent 70%);
+  pointer-events: none;
 }
 
 .nav-dropdown__item {
+  position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
+  padding: 0.7rem 0.75rem;
+  border-radius: var(--radius-lg);
   color: inherit;
   text-decoration: none;
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
 .nav-dropdown__item:hover,
 .nav-dropdown__item:focus-visible,
 .nav-dropdown__item.is-active {
-  background: color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-surface));
-}
-
-.nav-dropdown__item.is-active .text-label {
-  color: var(--color-brand-primary);
-}
-
-.nav-dropdown__item span {
-  display: grid;
-  gap: 0.15rem;
+  background: color-mix(in srgb, var(--color-brand-primary) 9%, var(--color-surface));
 }
 
 .nav-dropdown__icon {
   display: inline-flex;
-  width: 2rem;
-  height: 2rem;
+  width: 2.15rem;
+  height: 2.15rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 20%, var(--color-border));
+  border-radius: var(--radius-md);
   color: var(--color-brand-primary);
-  background: color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-surface));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-brand-primary) 14%, transparent),
+      color-mix(in srgb, var(--color-surface) 80%, transparent)
+    );
+}
+
+.nav-dropdown__copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.nav-dropdown__label {
+  font-size: 0.875rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.nav-dropdown__item.is-active .nav-dropdown__label {
+  color: var(--color-brand-primary);
+}
+
+.nav-dropdown__desc {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.nav-dropdown__arrow {
+  color: var(--color-brand-primary);
+  font-size: 0.85rem;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.nav-dropdown__item:hover .nav-dropdown__arrow,
+.nav-dropdown__item:focus-visible .nav-dropdown__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 1180px) {
+  .nav-dropdown__trigger {
+    padding: 0 0.55rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (min-width: 1360px) {
+  .nav-dropdown__trigger {
+    padding: 0 0.8rem;
+    font-size: 0.875rem;
+    min-height: 2.35rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-dropdown__trigger :deep(.app-icon) {
+  .nav-dropdown__trigger :deep(.app-icon),
+  .nav-dropdown__arrow {
     transition: none;
+  }
+
+  .nav-dropdown__panel {
+    animation: none;
   }
 }
 </style>
