@@ -19,6 +19,9 @@ npm install --no-audit --prefer-offline
 echo "🔨 Building Vue 3 + Vite production assets..."
 npm run build
 
+echo "🔒 Setting permissions for Nginx..."
+sudo chmod -R 755 /var/www/valu8er
+
 echo "🔄 Reloading Nginx web server..."
 sudo systemctl reload nginx
 
