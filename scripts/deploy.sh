@@ -7,6 +7,20 @@
 
 set -e
 
+# Ensure 2GB swap space exists (prevents Out of Memory on 1GB RAM instances)
+if ! swapon --show | grep -q '/swapfile'; then
+    if [ ! -f /swapfile ]; then
+        echo "💾 Creating 2GB swap memory..."
+        sudo fallocate -l 2G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    fi
+    sudo swapon /swapfile || true
+fi
+
+export NODE_OPTIONS="--max-old-space-size=2048"
+
 echo "🚀 Starting Valu8er deployment..."
 cd /var/www/valu8er
 
