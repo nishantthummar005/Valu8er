@@ -20,10 +20,20 @@ export const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'coming-soon',
+      component: () => import('@/pages/ComingSoonPage.vue'),
+      meta: { title: 'Coming Soon' },
+    },
+    {
+      path: '/coming-soon',
+      redirect: '/',
+    },
+    {
+      path: '/',
       component: PublicLayout,
       children: [
         {
-          path: '',
+          path: 'home',
           name: 'home',
           component: () => import('@/pages/HomePage.vue'),
           meta: { title: 'Home', eyebrow: 'Website' },
