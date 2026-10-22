@@ -24,7 +24,8 @@ export NODE_OPTIONS="--max-old-space-size=2048"
 echo "🚀 Starting Valu8er deployment..."
 cd /var/www/valu8er
 
-echo "📥 Pulling latest changes from GitHub..."
+echo "📥 Syncing latest changes from GitHub..."
+git reset --hard HEAD
 git pull origin main
 
 echo "📦 Installing any updated dependencies..."
