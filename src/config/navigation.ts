@@ -17,10 +17,11 @@ export type FooterColumn = {
 }
 
 export const primaryNav: NavItem[] = [
-  { label: 'Home', to: '/' },
+  { label: 'Home', to: '/home' },
   { label: 'About Us', to: '/about' },
   { label: 'Platform', to: '/platform' },
   { label: 'Pricing', to: '/pricing' },
+  { label: 'Schedule Appointment', to: '/schedule-appointment' },
   { label: 'Contact Us', to: '/contact' },
 ]
 
@@ -30,6 +31,7 @@ export const footerColumns: FooterColumn[] = [
     links: [
       { label: 'Platform', to: '/platform' },
       { label: 'Pricing', to: '/pricing' },
+      { label: 'Schedule Appointment', to: '/schedule-appointment' },
       { label: 'Get Started', to: '/get-started' },
     ],
   },

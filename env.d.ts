@@ -12,3 +12,16 @@ declare module '*.svg' {
   const src: string
   export default src
 }
+
+declare global {
+  interface Window {
+    Calendly?: {
+      initPopupWidget: (options: { url: string }) => void
+      initBadgeWidget?: (options: Record<string, any>) => void
+      initInlineWidget?: (options: { url: string; parentElement: HTMLElement }) => void
+    }
+  }
+}
+
+export {}
+

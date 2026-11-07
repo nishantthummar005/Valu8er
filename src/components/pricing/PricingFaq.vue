@@ -1,13 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import AppContainer from '@/components/ui/AppContainer.vue'
 import AppSection from '@/components/ui/AppSection.vue'
 import { useReveal } from '@/composables/useReveal'
 import { pricingFaqs } from '@/data/pricingDemo'
+import { getFaqs, type FaqItem } from '@/services/faqs'
 
 const root = ref<HTMLElement | null>(null)
 const { visible } = useReveal(root)
 const openId = ref<number | null>(0)
+const faqs = ref<FaqItem[]>(pricingFaqs)
+
+onMounted(async () => {
+  try {
+    const data = await getFaqs(pricingFaqs)
+    if (data && data.length > 0) {
+      faqs.value = data
+    }
+  } catch {
+    // Keep fallback faqs
+  }
+})
 
 function toggle(index: number) {
   openId.value = openId.value === index ? null : index
@@ -27,7 +40,7 @@ function toggle(index: number) {
         </header>
 
         <div class="faq__list">
-          <div v-for="(item, index) in pricingFaqs" :key="item.question" class="faq__item">
+          <div v-for="(item, index) in faqs" :key="item.question" class="faq__item">
             <h3>
               <button
                 type="button"

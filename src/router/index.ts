@@ -55,7 +55,16 @@ export const router = createRouter({
         page('resources', 'resources', 'Resources', 'Library'),
         page('resources/guides', 'resources-guides', 'Guides', 'Resources'),
         page('resources/insights', 'resources-insights', 'Insights', 'Resources'),
-        page('resources/faq', 'resources-faq', 'FAQs', 'Resources'),
+        {
+          path: 'resources/faq',
+          name: 'resources-faq',
+          component: () => import('@/pages/FaqPage.vue'),
+          meta: { title: 'FAQs', eyebrow: 'Resources' },
+        },
+        {
+          path: 'faq',
+          redirect: '/resources/faq',
+        },
         {
           path: 'pricing',
           name: 'pricing',
@@ -73,6 +82,16 @@ export const router = createRouter({
           name: 'contact',
           component: () => import('@/pages/ContactPage.vue'),
           meta: { title: 'Contact', eyebrow: 'Company' },
+        },
+        {
+          path: 'schedule-appointment',
+          name: 'schedule-appointment',
+          component: () => import('@/pages/ScheduleAppointmentPage.vue'),
+          meta: { title: 'Schedule Appointment', eyebrow: 'Calendly Live Booking' },
+        },
+        {
+          path: 'demo',
+          redirect: '/schedule-appointment',
         },
         page('privacy', 'privacy', 'Privacy', 'Legal'),
         page('terms', 'terms', 'Terms', 'Legal'),

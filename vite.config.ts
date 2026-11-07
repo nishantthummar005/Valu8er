@@ -28,5 +28,16 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '127.0.0.1',
+    proxy: {
+      '/api/calendly': {
+        target: 'https://api.calendly.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/calendly/, ''),
+      },
+      '/api/v1': {
+        target: 'https://valu8er.instaging.net',
+        changeOrigin: true,
+      },
+    },
   },
 })

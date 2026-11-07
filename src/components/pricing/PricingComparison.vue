@@ -43,8 +43,8 @@ function cellClass(value: FeatureCell) {
             <thead>
               <tr>
                 <th scope="col">Feature</th>
-                <th scope="col">Essentials</th>
-                <th scope="col">Professional</th>
+                <th scope="col">Beginner / Small</th>
+                <th scope="col">Medium / Large</th>
                 <th scope="col">Enterprise</th>
               </tr>
             </thead>

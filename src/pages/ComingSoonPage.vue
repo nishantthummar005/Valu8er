@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import { useThemeStore } from '@/stores/theme'
@@ -39,14 +40,110 @@ function updateCountdown() {
 
 const currentYear = computed(() => new Date().getFullYear())
 
+// Pages Navigation Dropdown
+const isPagesOpen = ref(false)
+const pagesMenuRef = ref<HTMLElement | null>(null)
+
+const togglePagesMenu = () => {
+  isPagesOpen.value = !isPagesOpen.value
+}
+
+const closePagesMenu = () => {
+  isPagesOpen.value = false
+}
+
+const handlePointerOutside = (event: MouseEvent) => {
+  if (pagesMenuRef.value && !pagesMenuRef.value.contains(event.target as Node)) {
+    closePagesMenu()
+  }
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && isPagesOpen.value) {
+    closePagesMenu()
+  }
+}
+
+const sitePages = [
+  {
+    title: 'Main Pages',
+    items: [
+      {
+        name: 'Home',
+        path: '/home',
+        icon: 'mdi-home-outline',
+        badge: 'Main',
+        desc: 'Hero overview, features & interactive platform preview',
+      },
+      {
+        name: 'Platform',
+        path: '/platform',
+        icon: 'mdi-layers-outline',
+        desc: 'Valuation modeling engine & real-time analytics',
+      },
+      {
+        name: 'Pricing',
+        path: '/pricing',
+        icon: 'mdi-tag-outline',
+        desc: 'Simple, transparent plans for companies & advisors',
+      },
+      {
+        name: 'Schedule Appointment',
+        path: '/schedule-appointment',
+        icon: 'mdi-calendar-clock',
+        desc: 'Schedule a live 1-on-1 valuation meeting with Rim Grewal',
+      },
+      {
+        name: 'About Us',
+        path: '/about',
+        icon: 'mdi-information-outline',
+        desc: 'Our mission, team story, and vision for valuation',
+      },
+      {
+        name: 'Contact',
+        path: '/contact',
+        icon: 'mdi-email-outline',
+        desc: 'Get in touch with our product & advisory specialists',
+      },
+    ],
+  },
+  {
+    title: 'Portal & Design System',
+    items: [
+      {
+        name: 'Sign In',
+        path: '/login',
+        icon: 'mdi-login-variant',
+        desc: 'Access your valuation workspace',
+      },
+      {
+        name: 'Get Started',
+        path: '/get-started',
+        icon: 'mdi-rocket-launch-outline',
+        desc: 'Create an account or start free valuation',
+      },
+      {
+        name: 'Design System',
+        path: '/foundation',
+        icon: 'mdi-palette-outline',
+        desc: 'Foundation tokens, UI components & typography',
+      },
+    ],
+  },
+]
+
 onMounted(() => {
   document.title = 'Coming Soon — Valu8er'
   updateCountdown()
   timerInterval = setInterval(updateCountdown, 1000)
+  document.addEventListener('mousedown', handlePointerOutside)
+  document.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
+  document.removeEventListener('mousedown', handlePointerOutside)
+  document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -75,6 +172,78 @@ onUnmounted(() => {
       <div class="nav-container">
         <div class="nav-actions">
           <ThemeToggle />
+
+          <span class="nav-divider" aria-hidden="true" />
+
+          <!-- Direct View Home Button -->
+          <!--<RouterLink to="/home" class="nav-cta-btn nav-cta-btn--home" title="View Home Page">
+            <v-icon icon="mdi-home-variant-outline" size="18" class="btn-icon" />
+            <span class="btn-text">View Home</span>
+          </RouterLink> -->
+
+          <!-- Other Pages Dropdown --> 
+          <div ref="pagesMenuRef" class="nav-pages-dropdown">
+            <button
+              type="button"
+              class="nav-cta-btn nav-cta-btn--pages"
+              :class="{ 'is-active': isPagesOpen }"
+              :aria-expanded="isPagesOpen"
+              aria-label="View other pages"
+              @click="togglePagesMenu" >
+              <v-icon icon="mdi-view-grid-outline" size="18" class="btn-icon" />
+              <!--<span class="btn-text">Other Pages</span>-->
+              <v-icon
+                icon="mdi-chevron-down"
+                size="16"
+                class="btn-chevron"
+                :class="{ 'is-rotated': isPagesOpen }"
+              />
+            </button>
+
+            <!-- Dropdown Menu -->
+            <transition name="dropdown-pop">
+              <div v-if="isPagesOpen" class="pages-menu" role="menu">
+                <div class="pages-menu__header">
+                  <div class="pages-menu__header-title">
+                    <v-icon icon="mdi-compass-outline" size="16" />
+                    <span>Explore Valu8er Pages</span>
+                  </div>
+                  <div class="pages-menu__header-sub">Navigate to preview pages across the platform</div>
+                </div>
+
+                <div class="pages-menu__body">
+                  <div v-for="group in sitePages" :key="group.title" class="pages-menu__group">
+                    <div class="pages-menu__group-title">{{ group.title }}</div>
+                    <div class="pages-menu__list">
+                      <RouterLink
+                        v-for="pageItem in group.items"
+                        :key="pageItem.path"
+                        :to="pageItem.path"
+                        class="pages-menu__item"
+                        @click="closePagesMenu"
+                      >
+                        <div class="item-icon-box">
+                          <v-icon :icon="pageItem.icon" size="17" />
+                        </div>
+                        <div class="item-content">
+                          <div class="item-header">
+                            <span class="item-name">{{ pageItem.name }}</span>
+                            <span v-if="pageItem.badge" class="item-badge">{{ pageItem.badge }}</span>
+                          </div>
+                          <span class="item-desc">{{ pageItem.desc }}</span>
+                        </div>
+                        <v-icon icon="mdi-arrow-right" size="14" class="item-arrow" />
+                      </RouterLink>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pages-menu__footer">
+                  <span class="pages-menu__footer-hint">Tip: Press <kbd>Esc</kbd> to close</span>
+                </div>
+              </div>
+            </transition> 
+          </div>  
         </div>
       </div>
     </header>
@@ -170,6 +339,25 @@ onUnmounted(() => {
               <div class="countdown-label">Seconds</div>
             </div>
           </div>
+        </div>
+
+        <!-- Schedule Appointment CTA Section -->
+        <div class="hero-cta-section">
+          <a
+            href="https://calendly.com/rim-valexp/valu8er-demo-1pm-est"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hero-schedule-btn"
+          >
+            <span class="btn-shimmer" aria-hidden="true" />
+            <v-icon icon="mdi-calendar-check" size="20" class="btn-icon" />
+            <span class="btn-text">Schedule Appointment</span>
+            <v-icon icon="mdi-open-in-new" size="16" class="btn-external" />
+          </a>
+          <p class="hero-cta-subtext">
+            <v-icon icon="mdi-clock-outline" size="14" class="subtext-icon" />
+            <span>1-on-1 Live Walkthrough & Consultation with Rim Grewal</span>
+          </p>
         </div>
       </div>
     </main>
@@ -386,7 +574,385 @@ onUnmounted(() => {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+/* Top Nav Actions & Buttons */
+.nav-divider {
+  width: 1px;
+  height: 1.5rem;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(13, 148, 136, 0.35),
+    transparent
+  );
+  margin-inline: 0.15rem;
+}
+
+.coming-soon.is-dark .nav-divider {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(45, 212, 191, 0.4),
+    transparent
+  );
+}
+
+.nav-cta-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.825rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  white-space: nowrap;
+}
+
+/* View Home button styling */
+.nav-cta-btn--home {
+  color: #0B6E6A;
+  background: rgba(13, 148, 136, 0.09);
+  border: 1px solid rgba(13, 148, 136, 0.28);
+  box-shadow: 0 2px 10px rgba(13, 148, 136, 0.08);
+}
+
+.coming-soon.is-dark .nav-cta-btn--home {
+  color: #5EEAD4;
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(45, 212, 191, 0.35);
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.15);
+}
+
+.nav-cta-btn--home:hover {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #0D9488 0%, #0284C7 100%);
+  border-color: transparent;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3);
+}
+
+.coming-soon.is-dark .nav-cta-btn--home:hover {
+  color: #0A0F1D;
+  background: linear-gradient(135deg, #2DD4BF 0%, #38BDF8 100%);
+  border-color: transparent;
+  transform: translateY(-1.5px);
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.45);
+}
+
+/* Other Pages dropdown button styling */
+.nav-cta-btn--pages {
+  color: var(--color-text, #0B1633);
+  background: var(--color-surface, #FFFFFF);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.coming-soon.is-dark .nav-cta-btn--pages {
+  color: #F1F5F9;
+  background: rgba(22, 32, 50, 0.75);
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+}
+
+.nav-cta-btn--pages:hover,
+.nav-cta-btn--pages.is-active {
+  color: #0D9488;
+  border-color: rgba(13, 148, 136, 0.4);
+  background: rgba(13, 148, 136, 0.06);
+  transform: translateY(-1.5px);
+}
+
+.coming-soon.is-dark .nav-cta-btn--pages:hover,
+.coming-soon.is-dark .nav-cta-btn--pages.is-active {
+  color: #2DD4BF;
+  border-color: rgba(45, 212, 191, 0.45);
+  background: rgba(20, 184, 166, 0.14);
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.2);
+}
+
+.btn-icon {
+  display: inline-flex;
+}
+
+.btn-chevron {
+  transition: transform 0.25s ease;
+  margin-left: -0.15rem;
+}
+
+.btn-chevron.is-rotated {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu Container */
+.nav-pages-dropdown {
+  position: relative;
+}
+
+.pages-menu {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  width: 370px;
+  max-width: calc(100vw - 2rem);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(13, 148, 136, 0.24);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 48px -10px rgba(15, 23, 42, 0.18),
+    0 0 24px rgba(13, 148, 136, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 50;
+  overflow: hidden;
+  text-align: left;
+}
+
+.coming-soon.is-dark .pages-menu {
+  background: linear-gradient(155deg, rgba(20, 29, 47, 0.96) 0%, rgba(12, 18, 32, 0.98) 100%);
+  border-color: rgba(45, 212, 191, 0.35);
+  box-shadow:
+    0 24px 54px -12px rgba(0, 0, 0, 0.75),
+    0 0 32px rgba(45, 212, 191, 0.2);
+}
+
+.pages-menu__header {
+  padding: 1.1rem 1.25rem 0.9rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.05) 0%, transparent 100%);
+}
+
+.coming-soon.is-dark .pages-menu__header {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.08) 0%, transparent 100%);
+}
+
+.pages-menu__header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: var(--color-text, #0B1633);
+}
+
+.coming-soon.is-dark .pages-menu__header-title {
+  color: #F8FAFC;
+}
+
+.pages-menu__header-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #64748B);
+  margin-top: 0.2rem;
+}
+
+.coming-soon.is-dark .pages-menu__header-sub {
+  color: #94A3B8;
+}
+
+.pages-menu__body {
+  padding: 0.75rem 0.85rem;
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pages-menu__group + .pages-menu__group {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.coming-soon.is-dark .pages-menu__group + .pages-menu__group {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.pages-menu__group-title {
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0D9488;
+  padding: 0.25rem 0.5rem 0.4rem;
+}
+
+.coming-soon.is-dark .pages-menu__group-title {
+  color: #2DD4BF;
+}
+
+.pages-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pages-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.18s ease;
+}
+
+.pages-menu__item:hover {
+  background: rgba(13, 148, 136, 0.08);
+  transform: translateX(2px);
+}
+
+.coming-soon.is-dark .pages-menu__item:hover {
+  background: rgba(45, 212, 191, 0.12);
+}
+
+.item-icon-box {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: rgba(13, 148, 136, 0.1);
+  color: #0D9488;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.coming-soon.is-dark .item-icon-box {
+  background: rgba(45, 212, 191, 0.12);
+  color: #2DD4BF;
+}
+
+.pages-menu__item:hover .item-icon-box {
+  background: #0D9488;
+  color: #FFFFFF;
+}
+
+.coming-soon.is-dark .pages-menu__item:hover .item-icon-box {
+  background: #2DD4BF;
+  color: #0A0F1D;
+}
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.item-name {
+  font-size: 0.835rem;
+  font-weight: 700;
+  color: var(--color-text, #0B1633);
+}
+
+.coming-soon.is-dark .item-name {
+  color: #F1F5F9;
+}
+
+.item-badge {
+  font-size: 0.65rem;
+  font-weight: 750;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(13, 148, 136, 0.15);
+  color: #0D9488;
+}
+
+.coming-soon.is-dark .item-badge {
+  background: rgba(45, 212, 191, 0.2);
+  color: #5EEAD4;
+}
+
+.item-desc {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary, #64748B);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.08rem;
+}
+
+.coming-soon.is-dark .item-desc {
+  color: #94A3B8;
+}
+
+.item-arrow {
+  color: var(--color-text-secondary, #94A3B8);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.pages-menu__item:hover .item-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: #0D9488;
+}
+
+.coming-soon.is-dark .pages-menu__item:hover .item-arrow {
+  color: #2DD4BF;
+}
+
+.pages-menu__footer {
+  padding: 0.55rem 1.15rem;
+  background: rgba(15, 23, 42, 0.02);
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.coming-soon.is-dark .pages-menu__footer {
+  background: rgba(0, 0, 0, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+.pages-menu__footer-hint {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary, #64748B);
+}
+
+.pages-menu__footer-hint kbd {
+  display: inline-block;
+  padding: 0.08rem 0.35rem;
+  font-size: 0.65rem;
+  font-family: inherit;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.coming-soon.is-dark .pages-menu__footer-hint kbd {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Dropdown Animation */
+.dropdown-pop-enter-active,
+.dropdown-pop-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dropdown-pop-enter-from,
+.dropdown-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
 }
 
 /* ==============================================================================
@@ -813,6 +1379,123 @@ onUnmounted(() => {
 }
 
 /* ==============================================================================
+   HERO CTA BUTTON (CALENDLY SCHEDULE APPOINTMENT)
+   ============================================================================== */
+.hero-cta-section {
+  margin-top: 3.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  z-index: 10;
+}
+
+.hero-schedule-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.95rem 2.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0D9488 0%, #0284C7 100%);
+  color: #ffffff !important;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  box-shadow:
+    0 10px 28px -4px rgba(13, 148, 136, 0.4),
+    0 0 20px rgba(13, 148, 136, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.coming-soon.is-dark .hero-schedule-btn {
+  background: linear-gradient(135deg, #14B8A6 0%, #0284C7 100%);
+  box-shadow:
+    0 12px 32px -4px rgba(20, 184, 166, 0.45),
+    0 0 30px rgba(45, 212, 191, 0.35);
+  border-color: rgba(94, 234, 212, 0.4);
+}
+
+.hero-schedule-btn:hover {
+  transform: translateY(-2.5px) scale(1.02);
+  background: linear-gradient(135deg, #0F766E 0%, #0369A1 100%);
+  box-shadow:
+    0 16px 36px -4px rgba(13, 148, 136, 0.55),
+    0 0 40px rgba(13, 148, 136, 0.45);
+}
+
+.coming-soon.is-dark .hero-schedule-btn:hover {
+  background: linear-gradient(135deg, #2DD4BF 0%, #38BDF8 100%);
+  color: #0A0F1D !important;
+  box-shadow:
+    0 16px 40px -4px rgba(45, 212, 191, 0.65),
+    0 0 45px rgba(45, 212, 191, 0.5);
+}
+
+.hero-schedule-btn:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.btn-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  animation: btn-sheen 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes btn-sheen {
+  0% { left: -100%; }
+  30%, 100% { left: 180%; }
+}
+
+.btn-icon {
+  flex-shrink: 0;
+}
+
+.btn-external {
+  opacity: 0.85;
+  transition: transform 0.2s ease;
+  margin-left: 0.15rem;
+}
+
+.hero-schedule-btn:hover .btn-external {
+  transform: translate(2px, -2px);
+  opacity: 1;
+}
+
+.hero-cta-subtext {
+  font-size: 0.825rem;
+  color: var(--color-text-secondary, #4B5B74);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.coming-soon.is-dark .hero-cta-subtext {
+  color: #94A3B8;
+}
+
+.subtext-icon {
+  color: #0D9488;
+}
+
+.coming-soon.is-dark .subtext-icon {
+  color: #2DD4BF;
+}
+
+/* ==============================================================================
    FOOTER
    ============================================================================== */
 .coming-soon__footer {
@@ -846,8 +1529,38 @@ onUnmounted(() => {
    RESPONSIVE DESIGN
    ============================================================================== */
 @media (max-width: 768px) {
+  .nav-container {
+    padding: 1rem 1.25rem;
+  }
+
+  .nav-actions {
+    gap: 0.5rem;
+  }
+
+  .nav-cta-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .nav-cta-btn .btn-text {
+    display: none;
+  }
+
+  .pages-menu {
+    width: 320px;
+  }
+
   .coming-soon__content {
     padding: 3rem 1.25rem;
+  }
+
+  .hero-cta-section {
+    margin-top: 2.25rem;
+  }
+
+  .hero-schedule-btn {
+    padding: 0.85rem 1.65rem;
+    font-size: 0.95rem;
   }
 
   .logo-stage {

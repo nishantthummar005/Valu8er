@@ -1,23 +1,36 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppContainer from '@/components/ui/AppContainer.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 import AppSection from '@/components/ui/AppSection.vue'
 import { useReveal } from '@/composables/useReveal'
 import {
   billingNote,
   formatPrice,
   priceFor,
-  pricingPlans,
   type BillingCycle,
+  type PricingPlan,
 } from '@/data/pricingDemo'
+import { FALLBACK_PLANS, getPricingPlans } from '@/services/plans'
 
 const root = ref<HTMLElement | null>(null)
 const { visible } = useReveal(root)
 const cycle = ref<BillingCycle>('annual')
+const loading = ref(false)
+const plans = ref<PricingPlan[]>(FALLBACK_PLANS)
 
-const note = computed(() => billingNote(cycle.value))
+onMounted(async () => {
+  try {
+    const dynamicPlans = await getPricingPlans()
+    if (dynamicPlans && dynamicPlans.length > 0) {
+      plans.value = dynamicPlans
+    }
+  } catch {
+    // Keep fallback plans
+  }
+})
 
 function renderHighlight(text: string) {
   return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -54,9 +67,13 @@ function renderHighlight(text: string) {
           </div>
         </header>
 
-        <div class="plans__grid">
+        <div v-if="loading" class="plans__loading">
+          <AppLoader text="Loading pricing plans..." />
+        </div>
+
+        <div v-else class="plans__grid">
           <article
-            v-for="plan in pricingPlans"
+            v-for="plan in plans"
             :key="plan.id"
             class="plan"
             :class="{ 'is-popular': plan.popular }"
@@ -71,7 +88,20 @@ function renderHighlight(text: string) {
 
             <div class="plan__price">
               <strong>{{ formatPrice(priceFor(plan, cycle)) }}</strong>
-              <span>{{ note }}</span>
+              <span>{{ billingNote(cycle, plan) }}</span>
+            </div>
+
+            <div v-if="plan.credits !== undefined" class="plan__credits-tag">
+              <v-icon icon="mdi-database-check-outline" size="14" />
+              <span v-if="plan.isCustom || plan.name.toLowerCase().includes('enterprise')">
+                {{ plan.credits }}+ credits & volume rates
+              </span>
+              <span v-else-if="plan.credits === 0">
+                {{ plan.credits_bonus }} bonus credits included
+              </span>
+              <span v-else>
+                {{ plan.credits }} credits + {{ plan.credits_bonus }} bonus (${{ plan.cost_per_credits }}/ea)
+              </span>
             </div>
 
             <p class="plan__includes">{{ plan.includesLabel }}</p>
@@ -134,7 +164,7 @@ function renderHighlight(text: string) {
   color: var(--color-text-secondary);
   font: inherit;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
 }
 
@@ -178,9 +208,14 @@ function renderHighlight(text: string) {
   outline-offset: 2px;
 }
 
+.plans__loading {
+  padding: var(--space-12) 0;
+  text-align: center;
+}
+
 .plans__grid {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 
 .plan {
@@ -191,6 +226,7 @@ function renderHighlight(text: string) {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   background: var(--color-surface);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .plan.is-popular {
@@ -213,6 +249,11 @@ function renderHighlight(text: string) {
   gap: var(--space-2);
 }
 
+.plan__title h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
 .plan__price strong {
   font-size: clamp(2.25rem, 1.8rem + 1.4vw, 3rem);
   letter-spacing: -0.04em;
@@ -225,6 +266,21 @@ function renderHighlight(text: string) {
   margin: 0;
   color: var(--color-text-muted);
   font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.plan__credits-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 24%, transparent);
+  color: var(--color-brand-primary);
+  font-size: 0.775rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 .plan__includes {
@@ -265,10 +321,38 @@ function renderHighlight(text: string) {
   font-weight: 650;
 }
 
-@media (min-width: 900px) {
+/* Tablet (2 columns) */
+@media (min-width: 640px) and (max-width: 959px) {
   .plans__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .plans__grid > .plan:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    max-width: 480px;
+    width: 100%;
+    margin-inline: auto;
+  }
+}
+
+/* Desktop: 3 Column Layout */
+@media (min-width: 960px) {
+  .plans__grid {
+    grid-template-columns: repeat(6, 1fr);
     align-items: stretch;
+  }
+
+  .plans__grid > .plan {
+    grid-column: span 2;
+  }
+
+  /* When there are 5 plans, center the last two plans on row 2 */
+  .plans__grid > .plan:nth-child(4):nth-last-child(2) {
+    grid-column: 2 / span 2;
+  }
+
+  .plans__grid > .plan:nth-child(5):last-child {
+    grid-column: 4 / span 2;
   }
 
   .plan.is-popular {

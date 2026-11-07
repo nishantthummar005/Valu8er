@@ -1,6 +1,6 @@
 export type BillingCycle = 'monthly' | 'annual'
 
-export type PlanId = 'essentials' | 'professional' | 'enterprise'
+export type PlanId = string | number
 
 export type PricingPlan = {
   id: PlanId
@@ -9,6 +9,11 @@ export type PricingPlan = {
   popular?: boolean
   monthly: number
   annual: number
+  price?: number
+  credits?: number
+  credits_bonus?: number
+  cost_per_credits?: number
+  isCustom?: boolean
   cta: string
   ctaTo: string
   highlights: string[]
@@ -178,14 +183,30 @@ export const pricingFaqs = [
   },
 ]
 
-export function formatPrice(amount: number) {
+export function formatPrice(amount: number | string) {
+  if (typeof amount === 'string') return amount
   return `$${amount}`
 }
 
-export function priceFor(plan: PricingPlan, cycle: BillingCycle) {
+export function priceFor(plan: PricingPlan, cycle: BillingCycle): number | string {
+  if (plan.isCustom || (plan.name.toLowerCase().includes('enterprise') && plan.monthly === 0)) {
+    return 'Custom'
+  }
   return cycle === 'annual' ? plan.annual : plan.monthly
 }
 
-export function billingNote(cycle: BillingCycle) {
-  return cycle === 'annual' ? 'per seat / month, billed annually' : 'per seat / month, billed monthly'
+export function billingNote(cycle: BillingCycle, plan?: PricingPlan) {
+  if (plan?.isCustom || plan?.name.toLowerCase().includes('enterprise')) {
+    return 'tailored firm rollout'
+  }
+  if (plan && plan.monthly === 0) {
+    return 'free forever, no card needed'
+  }
+  if (cycle === 'annual') {
+    if (plan?.price && plan.price > 0) {
+      return `per seat / mo ($${Math.round(plan.price).toLocaleString()} billed annually)`
+    }
+    return 'per seat / month, billed annually'
+  }
+  return 'per seat / month, billed monthly'
 }
