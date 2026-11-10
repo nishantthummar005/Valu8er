@@ -19,12 +19,16 @@ const form = reactive({
 const attempted = ref(false)
 const loading = ref(false)
 const serverError = ref('')
+const emailServerError = ref('')
 
 watch(
   () => [form.email, form.password],
   () => {
     if (serverError.value) {
       serverError.value = ''
+    }
+    if (emailServerError.value) {
+      emailServerError.value = ''
     }
   },
 )
@@ -42,8 +46,8 @@ function validate() {
 
 const errors = computed(() => {
   const v = attempted.value ? validate() : { email: '', password: '' }
-  if (serverError.value) {
-    v.email = serverError.value
+  if (emailServerError.value) {
+    v.email = emailServerError.value
   }
   return v
 })
@@ -53,19 +57,20 @@ const isValid = computed(() => Object.values(validate()).every((value) => !value
 const onSubmit = async () => {
   attempted.value = true
   serverError.value = ''
+  emailServerError.value = ''
 
   if (!isValid.value || loading.value) return
 
   loading.value = true
 
   try {
-    // 1. Post credentials directly to the backend API route
+    // 1. Post credentials directly to backend API route
     const { token, consume_url } = await requestSsoLogin({
       email: form.email.trim(),
       password: form.password,
     })
 
-    // 2. Extract plain text token and physically redirect the user's browser to the backend domain
+    // 2. Extract plain text token and physically redirect user's browser to the backend domain
     if (consume_url && token) {
       window.location.href = `${consume_url}?token=${token}`
     } else if (consume_url) {
@@ -79,7 +84,9 @@ const onSubmit = async () => {
 
     // Map the 401 error back to the form validation state
     if (error.response?.status === 401) {
-      serverError.value = error.response.data?.message || 'Invalid email or password.'
+      emailServerError.value = error.response.data?.message || 'Invalid email or password.'
+    } else if (error.response?.status === 422 && error.response.data?.errors?.email?.[0]) {
+      emailServerError.value = error.response.data.errors.email[0]
     } else if (error.response?.data?.message) {
       serverError.value = error.response.data.message
     } else {

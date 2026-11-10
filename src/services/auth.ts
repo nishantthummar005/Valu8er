@@ -5,48 +5,50 @@ export interface SsoRequestPayload {
   password: string
 }
 
-export interface SsoResponseData {
-  token?: string
-  consume_url?: string
+export interface SsoResponse {
+  token: string
+  consume_url: string
   [key: string]: any
 }
 
-export interface SsoResponse {
-  success?: boolean
-  token?: string
-  consume_url?: string
-  data?: SsoResponseData
-  message?: string
-}
-
 /**
- * Sends SSO login request to backend:
+ * SSO Authentication endpoint as verified in Postman:
  * POST https://valu8er.instaging.net/api/v1/sso/request
  */
+export const SSO_API_URL = 'https://valu8er.instaging.net/api/v1/sso/request'
+
 export async function requestSsoLogin(
   payload: SsoRequestPayload,
 ): Promise<{ token: string; consume_url: string }> {
   const endpoints = [
+    SSO_API_URL,
     '/api/v1/sso/request',
-    'https://valu8er.instaging.net/api/v1/sso/request',
   ]
 
   let lastError: any = null
 
   for (const url of endpoints) {
     try {
-      const response = await axios.post<SsoResponse>(url, payload, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+      const response = await axios.post<SsoResponse>(
+        url,
+        {
+          email: payload.email,
+          password: payload.password,
         },
-      })
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      )
 
-      const raw = response.data
-      const data = (raw?.data || raw) as SsoResponseData
+      const token = response.data?.token || ''
+      const consumeUrl = response.data?.consume_url || ''
 
-      const token = data?.token || raw?.token || ''
-      const consumeUrl = data?.consume_url || raw?.consume_url || ''
+      if (!token || !consumeUrl) {
+        throw new Error('Authentication response did not return token or consume_url.')
+      }
 
       return {
         token,
@@ -54,7 +56,7 @@ export async function requestSsoLogin(
       }
     } catch (err: any) {
       lastError = err
-      // If 401 or 422, it's a valid response from the auth server with invalid credentials
+      // If 401 or 422, it's a valid response from auth server with invalid credentials
       if (err.response?.status === 401 || err.response?.status === 422) {
         throw err
       }
@@ -63,3 +65,4 @@ export async function requestSsoLogin(
 
   throw lastError || new Error('Network error. Unable to connect to authentication server.')
 }
+
