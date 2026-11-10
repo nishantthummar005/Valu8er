@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import AuthFormCard from '@/components/auth/AuthFormCard.vue'
-import AuthSuccessState from '@/components/auth/AuthSuccessState.vue'
 import PasswordField from '@/components/auth/PasswordField.vue'
+import AppAlert from '@/components/ui/AppAlert.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import AppInput from '@/components/ui/AppInput.vue'
-import { useDemoForm } from '@/composables/useDemoForm'
+import { requestSsoLogin } from '@/services/auth'
 import { isValidEmail } from '@/utils/validation'
 
 const form = reactive({
@@ -16,7 +16,18 @@ const form = reactive({
   remember: false,
 })
 
-const { attempted, loading, succeeded, submit, reset } = useDemoForm()
+const attempted = ref(false)
+const loading = ref(false)
+const serverError = ref('')
+
+watch(
+  () => [form.email, form.password],
+  () => {
+    if (serverError.value) {
+      serverError.value = ''
+    }
+  },
+)
 
 function validate() {
   return {
@@ -29,31 +40,66 @@ function validate() {
   }
 }
 
-const errors = computed(() => (attempted.value ? validate() : { email: '', password: '' }))
+const errors = computed(() => {
+  const v = attempted.value ? validate() : { email: '', password: '' }
+  if (serverError.value) {
+    v.email = serverError.value
+  }
+  return v
+})
+
 const isValid = computed(() => Object.values(validate()).every((value) => !value))
 
-function onSubmit() {
-  void submit(isValid.value)
+const onSubmit = async () => {
+  attempted.value = true
+  serverError.value = ''
+
+  if (!isValid.value || loading.value) return
+
+  loading.value = true
+
+  try {
+    // 1. Post credentials directly to the backend API route
+    const { token, consume_url } = await requestSsoLogin({
+      email: form.email.trim(),
+      password: form.password,
+    })
+
+    // 2. Extract plain text token and physically redirect the user's browser to the backend domain
+    if (consume_url && token) {
+      window.location.href = `${consume_url}?token=${token}`
+    } else if (consume_url) {
+      window.location.href = consume_url
+    } else {
+      window.location.href = 'https://valu8er.instaging.net'
+    }
+  } catch (error: any) {
+    loading.value = false
+    console.error('Login failed', error)
+
+    // Map the 401 error back to the form validation state
+    if (error.response?.status === 401) {
+      serverError.value = error.response.data?.message || 'Invalid email or password.'
+    } else if (error.response?.data?.message) {
+      serverError.value = error.response.data.message
+    } else {
+      serverError.value = 'An error occurred during login. Please try again.'
+    }
+  }
 }
 </script>
 
 <template>
-  <AuthSuccessState
-    v-if="succeeded"
-    title="Welcome back"
-    description="This is a UI preview. Sign-in is not connected yet, so no workspace session was created."
-  >
-    <AppButton block to="/">Return home</AppButton>
-    <AppButton block variant="outline" @click="reset">Back to sign in</AppButton>
-  </AuthSuccessState>
-
   <AuthFormCard
-    v-else
     eyebrow="Account"
     title="Welcome back"
     description="Sign in to continue to your valuation workspace."
   >
     <form class="auth-form" novalidate @submit.prevent="onSubmit">
+      <AppAlert v-if="serverError" tone="error" class="mb-3">
+        {{ serverError }}
+      </AppAlert>
+
       <AppInput
         id="login-email"
         v-model="form.email"

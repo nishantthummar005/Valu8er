@@ -76,3 +76,4 @@ export async function submitContact(payload: ContactPayload): Promise<ContactRes
 
   throw lastError || new Error('Network error: Unable to submit contact message. Please try again.')
 }
+
