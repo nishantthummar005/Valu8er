@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import { useThemeStore } from '@/stores/theme'
@@ -40,110 +39,14 @@ function updateCountdown() {
 
 const currentYear = computed(() => new Date().getFullYear())
 
-// Pages Navigation Dropdown
-const isPagesOpen = ref(false)
-const pagesMenuRef = ref<HTMLElement | null>(null)
-
-const togglePagesMenu = () => {
-  isPagesOpen.value = !isPagesOpen.value
-}
-
-const closePagesMenu = () => {
-  isPagesOpen.value = false
-}
-
-const handlePointerOutside = (event: MouseEvent) => {
-  if (pagesMenuRef.value && !pagesMenuRef.value.contains(event.target as Node)) {
-    closePagesMenu()
-  }
-}
-
-const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && isPagesOpen.value) {
-    closePagesMenu()
-  }
-}
-
-const sitePages = [
-  {
-    title: 'Main Pages',
-    items: [
-      {
-        name: 'Home',
-        path: '/home',
-        icon: 'mdi-home-outline',
-        badge: 'Main',
-        desc: 'Hero overview, features & interactive platform preview',
-      },
-      {
-        name: 'Platform',
-        path: '/platform',
-        icon: 'mdi-layers-outline',
-        desc: 'Valuation modeling engine & real-time analytics',
-      },
-      {
-        name: 'Pricing',
-        path: '/pricing',
-        icon: 'mdi-tag-outline',
-        desc: 'Simple, transparent plans for companies & advisors',
-      },
-      {
-        name: 'Schedule Appointment',
-        path: '/schedule-appointment',
-        icon: 'mdi-calendar-clock',
-        desc: 'Schedule a live 1-on-1 valuation meeting with Rim Grewal',
-      },
-      {
-        name: 'About Us',
-        path: '/about',
-        icon: 'mdi-information-outline',
-        desc: 'Our mission, team story, and vision for valuation',
-      },
-      {
-        name: 'Contact',
-        path: '/contact',
-        icon: 'mdi-email-outline',
-        desc: 'Get in touch with our product & advisory specialists',
-      },
-    ],
-  },
-  {
-    title: 'Portal & Design System',
-    items: [
-      {
-        name: 'Sign In',
-        path: '/login',
-        icon: 'mdi-login-variant',
-        desc: 'Access your valuation workspace',
-      },
-      {
-        name: 'Get Started',
-        path: '/get-started',
-        icon: 'mdi-rocket-launch-outline',
-        desc: 'Create an account or start free valuation',
-      },
-      {
-        name: 'Design System',
-        path: '/foundation',
-        icon: 'mdi-palette-outline',
-        desc: 'Foundation tokens, UI components & typography',
-      },
-    ],
-  },
-]
-
 onMounted(() => {
   document.title = 'Coming Soon — Valu8er'
   updateCountdown()
   timerInterval = setInterval(updateCountdown, 1000)
-  document.addEventListener('mousedown', handlePointerOutside)
-  document.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
-  document.removeEventListener('mousedown', handlePointerOutside)
-  document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -173,7 +76,7 @@ onUnmounted(() => {
         <div class="nav-actions">
           <ThemeToggle />
 
-          <span class="nav-divider" aria-hidden="true" />
+          <!-- <span class="nav-divider" aria-hidden="true" /> -->
 
           <!-- Direct View Home Button -->
           <!--<RouterLink to="/home" class="nav-cta-btn nav-cta-btn--home" title="View Home Page">
@@ -182,7 +85,7 @@ onUnmounted(() => {
           </RouterLink> -->
 
           <!-- Other Pages Dropdown --> 
-          <div ref="pagesMenuRef" class="nav-pages-dropdown">
+          <!-- <div ref="pagesMenuRef" class="nav-pages-dropdown">
             <button
               type="button"
               class="nav-cta-btn nav-cta-btn--pages"
@@ -191,7 +94,6 @@ onUnmounted(() => {
               aria-label="View other pages"
               @click="togglePagesMenu" >
               <v-icon icon="mdi-view-grid-outline" size="18" class="btn-icon" />
-              <!--<span class="btn-text">Other Pages</span>-->
               <v-icon
                 icon="mdi-chevron-down"
                 size="16"
@@ -200,7 +102,6 @@ onUnmounted(() => {
               />
             </button>
 
-            <!-- Dropdown Menu -->
             <transition name="dropdown-pop">
               <div v-if="isPagesOpen" class="pages-menu" role="menu">
                 <div class="pages-menu__header">
@@ -243,7 +144,7 @@ onUnmounted(() => {
                 </div>
               </div>
             </transition> 
-          </div>  
+          </div> -->  
         </div>
       </div>
     </header>
