@@ -159,7 +159,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
-  min-height: 2.2rem;
+  min-height: 2.15rem;
   padding: 0 0.65rem;
   border: 0;
   border-radius: 999px;
@@ -196,11 +196,11 @@ onUnmounted(() => {
   transform: rotate(180deg);
 }
 
-@media (min-width: 1360px) {
+@media (min-width: 1520px) {
   .nav-dropdown__trigger {
-    padding: 0 0.85rem;
-    font-size: 0.875rem;
-    min-height: 2.35rem;
+    padding: 0 0.8rem;
+    font-size: 0.85rem;
+    min-height: 2.3rem;
   }
 }
 

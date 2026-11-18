@@ -29,8 +29,9 @@ const route = useRoute()
 .desktop-nav {
   position: relative;
   display: inline-flex;
+  align-items: center;
   max-width: 100%;
-  padding: 0.22rem;
+  padding: 0.2rem 0.25rem;
   border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
   border-radius: 999px;
   background:
@@ -50,7 +51,7 @@ const route = useRoute()
   align-items: center;
   justify-content: center;
   flex-wrap: nowrap;
-  gap: 0.1rem;
+  gap: 0.15rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -60,8 +61,8 @@ const route = useRoute()
   position: relative;
   display: inline-flex;
   align-items: center;
-  min-height: 2.2rem;
-  padding: 0 0.7rem;
+  min-height: 2.15rem;
+  padding: 0 0.65rem;
   border-radius: 999px;
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
@@ -86,11 +87,19 @@ const route = useRoute()
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
 }
 
-@media (min-width: 1360px) {
+@media (min-width: 1520px) {
+  .desktop-nav {
+    padding: 0.24rem 0.35rem;
+  }
+
+  .desktop-nav__links {
+    gap: 0.25rem;
+  }
+
   .desktop-nav__link {
-    padding: 0 0.85rem;
-    font-size: 0.875rem;
-    min-height: 2.35rem;
+    padding: 0 0.8rem;
+    font-size: 0.85rem;
+    min-height: 2.3rem;
   }
 }
 </style>

@@ -73,10 +73,10 @@ onUnmounted(() => {
 <template>
   <header class="app-header" :class="{ 'is-scrolled': scrolled, 'is-desktop': isNavDesktop }">
     <div class="app-header__hairline" aria-hidden="true" />
-    <AppContainer size="xl" class="app-header__bar">
+    <AppContainer size="xxl" class="app-header__bar">
       <RouterLink to="/" class="app-header__brand" aria-label="Valu8er home">
         <span class="app-header__brand-glow" aria-hidden="true" />
-        <AppLogo variant="lockup" :size="isNavDesktop ? 48 : 40" />
+        <AppLogo variant="mark" :size="isNavDesktop ? 40 : 34" />
       </RouterLink>
 
       <div v-if="isNavDesktop" class="app-header__center">
@@ -169,8 +169,8 @@ onUnmounted(() => {
         </template>
 
         <template v-else>
-          <AppButton variant="ghost" to="/login">Login</AppButton>
-          <AppButton to="/get-started" class="app-header__cta">Get Started</AppButton>
+          <AppButton variant="ghost" size="sm" to="/login">Login</AppButton>
+          <AppButton size="sm" to="/get-started" class="app-header__cta">Get Started</AppButton>
         </template>
       </div>
 
@@ -231,16 +231,16 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  min-height: 4.75rem;
+  gap: var(--space-3);
+  min-height: 4.5rem;
   padding-block: 0.35rem;
 }
 
 .app-header.is-desktop .app-header__bar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: var(--space-6);
+  justify-content: space-between;
+  gap: var(--space-4);
 }
 
 .app-header__brand {
@@ -280,7 +280,10 @@ onUnmounted(() => {
 .app-header__center {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex: 1;
   min-width: 0;
+  padding-inline: var(--space-2);
 }
 
 .app-header__actions {
@@ -288,6 +291,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .app-header__divider {
