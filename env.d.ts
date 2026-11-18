@@ -15,6 +15,7 @@ declare module '*.svg' {
 
 declare global {
   interface Window {
+    VALU8ER_USD_EXCHANGE_RATE?: number
     Calendly?: {
       initPopupWidget: (options: { url: string }) => void
       initBadgeWidget?: (options: Record<string, any>) => void

@@ -1,4 +1,6 @@
-export type BillingCycle = 'monthly' | 'annual'
+export type BillingCycle = 'monthly' | 'quarterly' | 'annual'
+export type Country = 'Canada' | 'USA'
+export type CurrencyCode = 'CAD' | 'USD'
 
 export type PlanId = string | number
 
@@ -8,8 +10,12 @@ export type PricingPlan = {
   description: string
   popular?: boolean
   monthly: number
+  quarterly?: number
   annual: number
   price?: number
+  currency?: CurrencyCode
+  quarterlyBilledTotal?: number
+  annualBilledTotal?: number
   credits?: number
   credits_bonus?: number
   cost_per_credits?: number
@@ -185,14 +191,17 @@ export const pricingFaqs = [
 
 export function formatPrice(amount: number | string) {
   if (typeof amount === 'string') return amount
-  return `$${amount}`
+  const formatted = Number.isInteger(amount) ? amount.toLocaleString() : amount.toFixed(0)
+  return `$${formatted}`
 }
 
 export function priceFor(plan: PricingPlan, cycle: BillingCycle): number | string {
   if (plan.isCustom || (plan.name.toLowerCase().includes('enterprise') && plan.monthly === 0)) {
     return 'Custom'
   }
-  return cycle === 'annual' ? plan.annual : plan.monthly
+  if (cycle === 'annual') return plan.annual
+  if (cycle === 'quarterly') return plan.quarterly ?? plan.monthly
+  return plan.monthly
 }
 
 export function billingNote(cycle: BillingCycle, plan?: PricingPlan) {
@@ -203,10 +212,18 @@ export function billingNote(cycle: BillingCycle, plan?: PricingPlan) {
     return 'free forever, no card needed'
   }
   if (cycle === 'annual') {
-    if (plan?.price && plan.price > 0) {
-      return `per seat / mo ($${Math.round(plan.price).toLocaleString()} billed annually)`
+    const total = plan?.annualBilledTotal ?? plan?.price
+    if (total && total > 0) {
+      return `per seat / mo ($${Math.round(total).toLocaleString()} billed annually)`
     }
     return 'per seat / month, billed annually'
+  }
+  if (cycle === 'quarterly') {
+    const total = plan?.quarterlyBilledTotal ?? (plan?.quarterly ? plan.quarterly * 3 : undefined)
+    if (total && total > 0) {
+      return `per seat / mo ($${Math.round(total).toLocaleString()} billed quarterly)`
+    }
+    return 'per seat / month, billed quarterly'
   }
   return 'per seat / month, billed monthly'
 }

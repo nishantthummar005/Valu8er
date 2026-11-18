@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppContainer from '@/components/ui/AppContainer.vue'
@@ -11,25 +11,82 @@ import {
   formatPrice,
   priceFor,
   type BillingCycle,
+  type Country,
   type PricingPlan,
 } from '@/data/pricingDemo'
-import { FALLBACK_PLANS, getPricingPlans } from '@/services/plans'
+import {
+  COUNTRIES,
+  FALLBACK_PLANS,
+  formatCreditCost,
+  getPlansPricing,
+} from '@/services/plans'
 
 const root = ref<HTMLElement | null>(null)
 const { visible } = useReveal(root)
+
+const country = ref<Country>('Canada')
 const cycle = ref<BillingCycle>('annual')
 const loading = ref(false)
 const plans = ref<PricingPlan[]>(FALLBACK_PLANS)
 
-onMounted(async () => {
+const isCountryOpen = ref(false)
+const countryDropdownRef = ref<HTMLElement | null>(null)
+
+const currentCountryOption = computed(() => {
+  return COUNTRIES.find((c) => c.code === country.value) || COUNTRIES[0]
+})
+
+async function loadPlans() {
+  loading.value = true
   try {
-    const dynamicPlans = await getPricingPlans()
+    const dynamicPlans = await getPlansPricing(cycle.value, country.value)
     if (dynamicPlans && dynamicPlans.length > 0) {
       plans.value = dynamicPlans
     }
   } catch {
     // Keep fallback plans
+  } finally {
+    loading.value = false
   }
+}
+
+function handleCountrySelect(code: Country) {
+  if (country.value === code) {
+    isCountryOpen.value = false
+    return
+  }
+  country.value = code
+  isCountryOpen.value = false
+  void loadPlans()
+}
+
+function handleCycleChange(newCycle: BillingCycle) {
+  if (cycle.value === newCycle) return
+  cycle.value = newCycle
+  void loadPlans()
+}
+
+function handlePointerOutside(event: MouseEvent) {
+  if (countryDropdownRef.value && !countryDropdownRef.value.contains(event.target as Node)) {
+    isCountryOpen.value = false
+  }
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && isCountryOpen.value) {
+    isCountryOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handlePointerOutside)
+  document.addEventListener('keydown', handleKeydown)
+  void loadPlans()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handlePointerOutside)
+  document.removeEventListener('keydown', handleKeydown)
 })
 
 function renderHighlight(text: string) {
@@ -46,29 +103,89 @@ function renderHighlight(text: string) {
             Simple, transparent
             <span class="heading-accent">pricing</span>
           </h2>
-          <div class="plans__toggle" role="group" aria-label="Billing cycle">
-            <button
-              type="button"
-              :aria-pressed="cycle === 'monthly'"
-              :class="{ 'is-active': cycle === 'monthly' }"
-              @click="cycle = 'monthly'"
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              :aria-pressed="cycle === 'annual'"
-              :class="{ 'is-active': cycle === 'annual' }"
-              @click="cycle = 'annual'"
-            >
-              Annual
-              <span>Save 15%</span>
-            </button>
+
+          <div class="plans__toolbar">
+            <!-- Country Dropdown -->
+            <div ref="countryDropdownRef" class="country-select">
+              <span class="country-select__label">Country:</span>
+              <div class="country-dropdown">
+                <button
+                  type="button"
+                  class="country-dropdown__trigger"
+                  :class="{ 'is-open': isCountryOpen }"
+                  :aria-expanded="isCountryOpen"
+                  aria-label="Select Country"
+                  @click="isCountryOpen = !isCountryOpen"
+                >
+                  <span class="country-dropdown__flag">{{ currentCountryOption.flag }}</span>
+                  <span class="country-dropdown__name">{{ currentCountryOption.name }}</span>
+                  <span class="country-dropdown__badge">{{ currentCountryOption.currency }}</span>
+                  <v-icon
+                    icon="mdi-chevron-down"
+                    size="16"
+                    class="country-dropdown__chevron"
+                    :class="{ 'is-rotated': isCountryOpen }"
+                  />
+                </button>
+
+                <transition name="dropdown-pop">
+                  <div v-if="isCountryOpen" class="country-dropdown__menu" role="listbox">
+                    <button
+                      v-for="opt in COUNTRIES"
+                      :key="opt.code"
+                      type="button"
+                      class="country-dropdown__item"
+                      :class="{ 'is-active': country === opt.code }"
+                      @click="handleCountrySelect(opt.code)"
+                    >
+                      <span class="country-dropdown__flag">{{ opt.flag }}</span>
+                      <span class="country-dropdown__name">{{ opt.name }}</span>
+                      <span class="country-dropdown__badge">{{ opt.currency }}</span>
+                      <v-icon
+                        v-if="country === opt.code"
+                        icon="mdi-check"
+                        size="15"
+                        class="country-dropdown__check"
+                      />
+                    </button>
+                  </div>
+                </transition>
+              </div>
+            </div>
+
+            <!-- Billing Cycle Tabs -->
+            <div class="plans__toggle" role="group" aria-label="Billing cycle">
+              <button
+                type="button"
+                :aria-pressed="cycle === 'monthly'"
+                :class="{ 'is-active': cycle === 'monthly' }"
+                @click="handleCycleChange('monthly')"
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                :aria-pressed="cycle === 'quarterly'"
+                :class="{ 'is-active': cycle === 'quarterly' }"
+                @click="handleCycleChange('quarterly')"
+              >
+                Quarterly
+              </button>
+              <button
+                type="button"
+                :aria-pressed="cycle === 'annual'"
+                :class="{ 'is-active': cycle === 'annual' }"
+                @click="handleCycleChange('annual')"
+              >
+                Annual
+                <span>Save 10%</span>
+              </button>
+            </div>
           </div>
         </header>
 
         <div v-if="loading" class="plans__loading">
-          <AppLoader text="Loading pricing plans..." />
+          <AppLoader text="Updating pricing plans..." />
         </div>
 
         <div v-else class="plans__grid">
@@ -87,7 +204,12 @@ function renderHighlight(text: string) {
             </div>
 
             <div class="plan__price">
-              <strong>{{ formatPrice(priceFor(plan, cycle)) }}</strong>
+              <div class="plan__price-wrap">
+                <strong>{{ formatPrice(priceFor(plan, cycle)) }}</strong>
+                <span v-if="!plan.isCustom && plan.monthly > 0" class="plan__currency-tag">
+                  {{ plan.currency || currentCountryOption.currency }}
+                </span>
+              </div>
               <span>{{ billingNote(cycle, plan) }}</span>
             </div>
 
@@ -100,7 +222,7 @@ function renderHighlight(text: string) {
                 {{ plan.credits_bonus }} bonus credits included
               </span>
               <span v-else>
-                {{ plan.credits }} credits + {{ plan.credits_bonus }} bonus (${{ plan.cost_per_credits }}/ea)
+                {{ plan.credits }} credits + {{ plan.credits_bonus }} bonus (${{ formatCreditCost(plan.cost_per_credits || 0) }}/ea)
               </span>
             </div>
 
@@ -141,6 +263,130 @@ function renderHighlight(text: string) {
   text-align: center;
 }
 
+.plans__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.country-select {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.country-select__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.country-dropdown {
+  position: relative;
+}
+
+.country-dropdown__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.country-dropdown__trigger:hover,
+.country-dropdown__trigger.is-open {
+  border-color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 6%, var(--color-surface));
+}
+
+.country-dropdown__flag {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.country-dropdown__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.country-dropdown__badge {
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
+  color: var(--color-brand-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.country-dropdown__chevron {
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.country-dropdown__chevron.is-rotated {
+  transform: rotate(180deg);
+}
+
+.country-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 40;
+  min-width: 175px;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  backdrop-filter: blur(16px);
+}
+
+.country-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 550;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.country-dropdown__item:hover {
+  background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+  color: var(--color-brand-primary);
+}
+
+.country-dropdown__item.is-active {
+  background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
+  color: var(--color-brand-primary);
+  font-weight: 700;
+}
+
+.country-dropdown__check {
+  margin-left: auto;
+  color: var(--color-brand-primary);
+}
+
 .plans__toggle {
   display: inline-flex;
   flex-wrap: wrap;
@@ -149,58 +395,60 @@ function renderHighlight(text: string) {
   padding: 0.3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-surface-muted);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
 
 .plans__toggle button {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  min-height: 2.75rem;
+  gap: var(--space-2);
+  min-height: 2.25rem;
   padding: 0 var(--space-4);
-  border: 0;
+  border: none;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--color-text-secondary);
-  font: inherit;
+  color: var(--color-text-muted);
   font-size: 0.875rem;
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .plans__toggle button span {
-  padding: 0.15rem 0.45rem;
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
-  color: var(--color-brand-deep);
-  font-size: 0.7rem;
+  background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
+  color: var(--color-brand-primary);
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
-[data-theme='dark'] .plans__toggle button span {
-  color: var(--color-brand-highlight);
+.plans__toggle button:hover {
+  color: var(--color-text);
 }
 
 .plans__toggle button.is-active {
-  background: var(--color-text);
-  color: var(--color-text-inverse);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-brand-primary);
+  color: #0b1517;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .plans__toggle button.is-active span {
-  background: color-mix(in srgb, var(--color-brand-highlight) 22%, transparent);
-  color: var(--color-brand-highlight);
+  background: rgba(11, 21, 23, 0.18);
+  color: #0b1517;
 }
 
 [data-theme='dark'] .plans__toggle button.is-active {
-  background: var(--color-text);
-  color: var(--color-text-inverse);
+  background: var(--color-brand-primary);
+  color: #051315;
 }
 
 [data-theme='dark'] .plans__toggle button.is-active span {
-  background: color-mix(in srgb, var(--color-brand-deep) 16%, transparent);
-  color: var(--color-brand-deep);
+  background: rgba(5, 19, 21, 0.2);
+  color: #051315;
 }
 
 .plans__toggle button:focus-visible {
@@ -254,11 +502,24 @@ function renderHighlight(text: string) {
   font-weight: 700;
 }
 
+.plan__price-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
 .plan__price strong {
   font-size: clamp(2.25rem, 1.8rem + 1.4vw, 3rem);
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--color-text);
+}
+
+.plan__currency-tag {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
 }
 
 .plan__price span,

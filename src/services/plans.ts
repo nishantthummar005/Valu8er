@@ -1,4 +1,44 @@
-import type { PricingPlan } from '@/data/pricingDemo'
+import axios from 'axios'
+import type { BillingCycle, Country, CurrencyCode, PricingPlan } from '@/data/pricingDemo'
+
+/**
+ * Global USD Exchange Rate
+ * In https://valu8er.instaging.net/api/v1/plans API response, by default price is in CAD and monthly base.
+ * Global variable for USD exchange rate - default set 0.70 (1 CAD = 0.70 USD)
+ */
+export const DEFAULT_USD_EXCHANGE_RATE = 0.70
+
+if (typeof window !== 'undefined') {
+  if (window.VALU8ER_USD_EXCHANGE_RATE === undefined) {
+    window.VALU8ER_USD_EXCHANGE_RATE = DEFAULT_USD_EXCHANGE_RATE
+  }
+}
+
+export function getUsdExchangeRate(): number {
+  if (typeof window !== 'undefined' && typeof window.VALU8ER_USD_EXCHANGE_RATE === 'number') {
+    return window.VALU8ER_USD_EXCHANGE_RATE
+  }
+  return DEFAULT_USD_EXCHANGE_RATE
+}
+
+export function setUsdExchangeRate(rate: number): void {
+  if (typeof window !== 'undefined') {
+    window.VALU8ER_USD_EXCHANGE_RATE = rate
+  }
+}
+
+export interface CountryOption {
+  code: Country
+  name: string
+  currency: CurrencyCode
+  flag: string
+  symbol: string
+}
+
+export const COUNTRIES: CountryOption[] = [
+  { code: 'Canada', name: 'Canada', currency: 'CAD', flag: '🇨🇦', symbol: '$' },
+  { code: 'USA', name: 'USA', currency: 'USD', flag: '🇺🇸', symbol: '$' },
+]
 
 export interface ApiPlan {
   id: number
@@ -23,9 +63,31 @@ export interface ApiPlansResponse {
   data: ApiPlan[]
 }
 
+export interface ApiPlansPricingTooltipTiers {
+  monthly: string
+  quarterly: string
+  anually_credits: number
+  credits_bonus: number
+  cost_per_credits: string
+}
+
+export interface ApiPlansPricingItem {
+  plan_id: number
+  plan_name: string
+  billing_cycle: string
+  currency: CurrencyCode
+  base_monthly_price: string
+  total_billed_amount: string
+  tooltip_tiers: ApiPlansPricingTooltipTiers
+}
+
+export interface ApiPlansPricingResponse {
+  success: boolean
+  data: ApiPlansPricingItem[]
+}
+
 /**
  * Static fallback descriptions used when the API description is null, empty, or undefined.
- * Preserves existing brand messaging across plan tiers.
  */
 export const STATIC_DESCRIPTIONS: Record<string, string> = {
   'beginner(free)': 'For owners and small teams starting with a clear valuation workspace.',
@@ -38,10 +100,6 @@ export const STATIC_DESCRIPTIONS: Record<string, string> = {
   enterprise: 'For finance teams that need controls, deeper support, and firm-wide rollout.',
 }
 
-/**
- * Returns the plan description: if the API description is null or empty,
- * falls back to the static description.
- */
 export function getPlanDescription(
   name: string,
   apiDescription: string | null | undefined,
@@ -68,8 +126,12 @@ export function getPlanDescription(
   return 'For advisors and growing teams running valuation work regularly.'
 }
 
+export function formatCreditCost(val: number): string {
+  return Number.isInteger(val) ? val.toString() : val.toFixed(2)
+}
+
 /**
- * Static fallback plans based on verified API schema and business rules
+ * Default fallback plans based on verified API numbers (CAD base rates)
  */
 export const FALLBACK_PLANS: PricingPlan[] = [
   {
@@ -77,8 +139,10 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     name: 'Beginner (Free)',
     description: STATIC_DESCRIPTIONS.beginner,
     monthly: 0,
+    quarterly: 0,
     annual: 0,
     price: 0,
+    currency: 'CAD',
     credits: 0,
     credits_bonus: 20,
     cost_per_credits: 30,
@@ -98,9 +162,13 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     id: 2,
     name: 'Small',
     description: STATIC_DESCRIPTIONS.small,
-    monthly: 71,
-    annual: 60,
+    monthly: 720,
+    quarterly: 720,
+    annual: 648,
     price: 720,
+    currency: 'CAD',
+    quarterlyBilledTotal: 2160,
+    annualBilledTotal: 7776,
     credits: 30,
     credits_bonus: 100,
     cost_per_credits: 24,
@@ -121,9 +189,13 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     name: 'Medium',
     description: STATIC_DESCRIPTIONS.medium,
     popular: true,
-    monthly: 185,
-    annual: 158,
+    monthly: 1890,
+    quarterly: 1890,
+    annual: 1701,
     price: 1890,
+    currency: 'CAD',
+    quarterlyBilledTotal: 5670,
+    annualBilledTotal: 20412,
     credits: 90,
     credits_bonus: 200,
     cost_per_credits: 21,
@@ -134,7 +206,7 @@ export const FALLBACK_PLANS: PricingPlan[] = [
       '**90 credits** + **200 bonus credits**',
       '**$21** per additional credit',
       '**Unlimited** valuation files',
-      'Multi-user collaboration & notes',
+      'Multi-user collaboration & shared notes',
       '**Priority support**',
       'Personalized onboarding walkthrough',
     ],
@@ -143,9 +215,13 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     id: 4,
     name: 'Large',
     description: STATIC_DESCRIPTIONS.large,
-    monthly: 353,
-    annual: 300,
+    monthly: 3600,
+    quarterly: 3600,
+    annual: 3240,
     price: 3600,
+    currency: 'CAD',
+    quarterlyBilledTotal: 10800,
+    annualBilledTotal: 38880,
     credits: 200,
     credits_bonus: 300,
     cost_per_credits: 18,
@@ -166,8 +242,10 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     name: 'Enterprise',
     description: STATIC_DESCRIPTIONS.enterprise,
     monthly: 0,
+    quarterly: 0,
     annual: 0,
     price: 0,
+    currency: 'CAD',
     isCustom: true,
     credits: 500,
     credits_bonus: 1000,
@@ -178,7 +256,7 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     highlights: [
       '**500+ credits** + **1,000 bonus credits**',
       '**$15** volume credit rate',
-      '**Role-based permissions** & audit logs',
+      '**Role-based permissions** & audit-friendly logs',
       'SSO-ready enterprise security',
       'Dedicated success manager',
       '**4-hour support SLA**',
@@ -187,31 +265,46 @@ export const FALLBACK_PLANS: PricingPlan[] = [
 ]
 
 /**
- * Transforms an API plan item into our UI PricingPlan structure
+ * Transforms an item from POST /api/v1/plans-pricing into our UI PricingPlan structure
  */
-export function transformApiPlan(plan: ApiPlan): PricingPlan {
-  const rawPrice = parseFloat(plan.price) || 0
-  const normalizedName = plan.name.toLowerCase()
+export function transformPlansPricingItem(
+  item: ApiPlansPricingItem,
+  country: Country = 'Canada',
+): PricingPlan {
+  const normalizedName = item.plan_name.toLowerCase()
   const isEnterprise = normalizedName.includes('enterprise')
-  const isFree = normalizedName.includes('free') || (rawPrice === 0 && !isEnterprise)
+  const isFree = normalizedName.includes('free') || normalizedName.includes('beginner')
 
-  // Annual calculation: base price / 12 months
-  const annualMonthlyEquivalent = isFree || isEnterprise ? 0 : Math.round(rawPrice / 12)
+  const baseMonthly = parseFloat(item.base_monthly_price) || 0
+  const totalBilled = parseFloat(item.total_billed_amount) || 0
+  const costPerCredit = parseFloat(item.tooltip_tiers?.cost_per_credits) || 0
+  const bonusCredits = item.tooltip_tiers?.credits_bonus || 0
 
-  // Monthly calculation: standard uncommitted rate (+15%)
-  const standardMonthlyRate =
-    isFree || isEnterprise
-      ? 0
-      : Math.round(annualMonthlyEquivalent > 0 ? annualMonthlyEquivalent / 0.85 : 0)
+  let monthlyCredits = 0
+  if (normalizedName.includes('small')) monthlyCredits = 30
+  else if (normalizedName.includes('medium')) monthlyCredits = 90
+  else if (normalizedName.includes('large')) monthlyCredits = 200
+  else if (isEnterprise) monthlyCredits = 500
 
-  // Highlights based on plan attributes & tiers
+  // Monthly rate
+  const monthlyRate = isFree || isEnterprise ? 0 : Math.round(baseMonthly)
+
+  // Quarterly rate: same base monthly price, billed quarterly
+  const quarterlyMonthlyRate = isFree || isEnterprise ? 0 : Math.round(baseMonthly)
+  const quarterlyBilledTotal = isFree || isEnterprise ? 0 : baseMonthly * 3
+
+  // Annual rate: total_billed_amount divided by 12 (with 10% annual savings)
+  const annualMonthlyRate = isFree || isEnterprise ? 0 : Math.round(totalBilled / 12)
+  const annualBilledTotal = isFree || isEnterprise ? 0 : totalBilled
+
   let highlights: string[] = []
   let includesLabel = 'Included with your plan'
+  const costFormatted = formatCreditCost(costPerCredit)
 
   if (isFree) {
     includesLabel = 'Included with free plan'
     highlights = [
-      `**${plan.credits_bonus || 20} bonus credits** included`,
+      `**${bonusCredits || 20} bonus credits** included`,
       'Up to **3 active valuation files**',
       '**Estimated value, range & confidence**',
       'Financial trends and margin views',
@@ -221,8 +314,8 @@ export function transformApiPlan(plan: ApiPlan): PricingPlan {
   } else if (normalizedName.includes('small')) {
     includesLabel = 'Everything in Beginner, plus'
     highlights = [
-      `**${plan.credits} credits** + **${plan.credits_bonus} bonus credits**`,
-      `**$${plan.cost_per_credits}** per additional credit`,
+      `**30 credits** + **${bonusCredits} bonus credits**`,
+      `**$${costFormatted}** per additional credit`,
       'Up to **10 active valuation files**',
       'Multi-user collaboration',
       'Value driver panels & historical trends',
@@ -231,8 +324,8 @@ export function transformApiPlan(plan: ApiPlan): PricingPlan {
   } else if (normalizedName.includes('medium')) {
     includesLabel = 'Everything in Small, plus'
     highlights = [
-      `**${plan.credits} credits** + **${plan.credits_bonus} bonus credits**`,
-      `**$${plan.cost_per_credits}** per additional credit`,
+      `**90 credits** + **${bonusCredits} bonus credits**`,
+      `**$${costFormatted}** per additional credit`,
       '**Unlimited** valuation files',
       'Multi-user collaboration & shared notes',
       '**Priority support**',
@@ -241,8 +334,8 @@ export function transformApiPlan(plan: ApiPlan): PricingPlan {
   } else if (normalizedName.includes('large')) {
     includesLabel = 'Everything in Medium, plus'
     highlights = [
-      `**${plan.credits} credits** + **${plan.credits_bonus} bonus credits**`,
-      `**$${plan.cost_per_credits}** per additional credit`,
+      `**200 credits** + **${bonusCredits} bonus credits**`,
+      `**$${costFormatted}** per additional credit`,
       'Advanced valuation modeling',
       'Value drivers & benchmark comparisons',
       '**Priority support SLA**',
@@ -251,37 +344,37 @@ export function transformApiPlan(plan: ApiPlan): PricingPlan {
   } else if (isEnterprise) {
     includesLabel = 'Everything in Large, plus'
     highlights = [
-      `**${plan.credits}+ credits** + **${plan.credits_bonus} bonus credits**`,
-      `**$${plan.cost_per_credits}** volume credit rate`,
+      `**500+ credits** + **${bonusCredits} bonus credits**`,
+      `**$${costFormatted}** volume credit rate`,
       '**Role-based permissions** & audit-friendly logs',
       'SSO-ready enterprise security',
       'Dedicated success manager',
       '**4-hour support SLA**',
     ]
-  } else {
-    highlights = [
-      `**${plan.credits} credits** + **${plan.credits_bonus} bonus**`,
-      `**$${plan.cost_per_credits}** per additional credit`,
-      'Valuation modeling workspace',
-      'Structured reporting preview',
-      'Support access',
-    ]
   }
 
   const isPopular = normalizedName.includes('medium')
 
+  // Clean formatted name
+  let displayName = item.plan_name
+  if (displayName === 'Beginner(Free)') displayName = 'Beginner (Free)'
+
   return {
-    id: plan.id,
-    name: plan.name,
-    description: getPlanDescription(plan.name, plan.description),
+    id: item.plan_id,
+    name: displayName,
+    description: getPlanDescription(item.plan_name, null),
     popular: isPopular,
-    monthly: standardMonthlyRate,
-    annual: annualMonthlyEquivalent,
-    price: rawPrice,
+    monthly: monthlyRate,
+    quarterly: quarterlyMonthlyRate,
+    annual: annualMonthlyRate,
+    price: baseMonthly,
+    currency: item.currency || (country === 'USA' ? 'USD' : 'CAD'),
+    quarterlyBilledTotal,
+    annualBilledTotal,
     isCustom: isEnterprise,
-    credits: plan.credits,
-    credits_bonus: plan.credits_bonus,
-    cost_per_credits: plan.cost_per_credits,
+    credits: monthlyCredits,
+    credits_bonus: bonusCredits,
+    cost_per_credits: costPerCredit,
     cta: isEnterprise ? 'Talk to Us' : isFree ? 'Start Free Trial' : 'Get Started',
     ctaTo: isEnterprise ? '/contact' : '/get-started',
     includesLabel,
@@ -290,37 +383,74 @@ export function transformApiPlan(plan: ApiPlan): PricingPlan {
 }
 
 /**
- * Fetch plans from http://valu8er.instaging.net/api/v1/plans with fallback resilience
+ * Fetch country and billing-cycle specific pricing from POST /api/v1/plans-pricing
  */
-export async function getPricingPlans(): Promise<PricingPlan[]> {
+export async function getPlansPricing(
+  billingCycle: BillingCycle = 'annual',
+  country: Country = 'Canada',
+): Promise<PricingPlan[]> {
   const endpoints = [
-    '/api/v1/plans',
-    'https://valu8er.instaging.net/api/v1/plans',
-    'http://valu8er.instaging.net/api/v1/plans',
+    'https://valu8er.instaging.net/api/v1/plans-pricing',
+    '/api/v1/plans-pricing',
   ]
 
   for (const url of endpoints) {
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
+      const response = await axios.post<ApiPlansPricingResponse>(
+        url,
+        {
+          billing_cycle: billingCycle,
+          country,
         },
-      })
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          timeout: 8000,
+        },
+      )
 
-      if (response.ok) {
-        const result: ApiPlansResponse = await response.json()
-        if (result?.data && Array.isArray(result.data) && result.data.length > 0) {
-          const activePlans = result.data.filter((p) => p.active === 1)
-          if (activePlans.length > 0) {
-            return activePlans.map(transformApiPlan)
-          }
-        }
+      if (response.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
+        return response.data.data.map((item) => transformPlansPricingItem(item, country))
       }
     } catch {
-      // Try next endpoint
+      // Try next endpoint or fall back
     }
   }
 
-  return FALLBACK_PLANS
+  // Fallback with exchange rate calculation if API fails
+  const rate = country === 'USA' ? getUsdExchangeRate() : 1.0
+  const currency: CurrencyCode = country === 'USA' ? 'USD' : 'CAD'
+
+  return FALLBACK_PLANS.map((plan) => {
+    if (plan.isCustom || plan.monthly === 0) {
+      return { ...plan, currency }
+    }
+
+    const monthly = Math.round(plan.monthly * rate)
+    const quarterly = Math.round((plan.quarterly ?? plan.monthly) * rate)
+    const annual = Math.round(plan.annual * rate)
+    const quarterlyTotal = plan.quarterlyBilledTotal ? Math.round(plan.quarterlyBilledTotal * rate) : monthly * 3
+    const annualTotal = plan.annualBilledTotal ? Math.round(plan.annualBilledTotal * rate) : annual * 12
+    const costPerCredit = plan.cost_per_credits ? +(plan.cost_per_credits * rate).toFixed(2) : undefined
+
+    return {
+      ...plan,
+      currency,
+      monthly,
+      quarterly,
+      annual,
+      quarterlyBilledTotal: quarterlyTotal,
+      annualBilledTotal: annualTotal,
+      cost_per_credits: costPerCredit,
+    }
+  })
+}
+
+/**
+ * Backward compatibility: get base pricing plans
+ */
+export async function getPricingPlans(): Promise<PricingPlan[]> {
+  return getPlansPricing('annual', 'Canada')
 }
