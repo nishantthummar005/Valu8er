@@ -27,6 +27,7 @@ const route = useRoute()
 
 <style scoped>
 .desktop-nav {
+  position: relative;
   display: inline-flex;
   max-width: 100%;
   padding: 0.22rem;
@@ -42,12 +43,6 @@ const route = useRoute()
     inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent),
     0 1px 2px color-mix(in srgb, #000 4%, transparent);
   backdrop-filter: blur(8px);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.desktop-nav::-webkit-scrollbar {
-  display: none;
 }
 
 .desktop-nav__links {

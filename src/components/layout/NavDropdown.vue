@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { isNavActive, type NavItem } from '@/config/navigation'
@@ -12,30 +12,52 @@ const route = useRoute()
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 const panel = ref<HTMLElement | null>(null)
-let closeTimer = 0
+let closeTimer: ReturnType<typeof setTimeout> | null = null
+let openedByHover = false
+
+const clearCloseTimer = () => {
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+}
 
 const openMenu = () => {
-  window.clearTimeout(closeTimer)
+  clearCloseTimer()
+  if (!open.value) {
+    openedByHover = true
+  }
   open.value = true
 }
 
 const closeMenu = () => {
+  clearCloseTimer()
+  openedByHover = false
   open.value = false
 }
 
 const scheduleClose = () => {
-  window.clearTimeout(closeTimer)
-  closeTimer = window.setTimeout(() => {
+  clearCloseTimer()
+  closeTimer = setTimeout(() => {
     open.value = false
-  }, 140)
+    openedByHover = false
+  }, 220)
 }
 
-const toggleMenu = () => {
-  open.value = !open.value
+const toggleMenu = (event: MouseEvent) => {
+  event.stopPropagation()
+  clearCloseTimer()
+  if (openedByHover) {
+    // If opened via hover, user click confirms keeping it open
+    openedByHover = false
+    open.value = true
+  } else {
+    open.value = !open.value
+  }
 }
 
-const onDocumentPointer = (event: MouseEvent) => {
-  if (!root.value?.contains(event.target as Node)) {
+const onDocumentClick = (event: MouseEvent) => {
+  if (root.value && !root.value.contains(event.target as Node)) {
     closeMenu()
   }
 }
@@ -56,13 +78,22 @@ const onKeydown = async (event: KeyboardEvent) => {
   }
 }
 
+watch(
+  () => route.path,
+  () => {
+    closeMenu()
+  },
+)
+
 onMounted(() => {
-  document.addEventListener('mousedown', onDocumentPointer)
+  document.addEventListener('click', onDocumentClick)
+  document.addEventListener('keydown', onKeydown)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousedown', onDocumentPointer)
-  window.clearTimeout(closeTimer)
+  document.removeEventListener('click', onDocumentClick)
+  document.removeEventListener('keydown', onKeydown)
+  clearCloseTimer()
 })
 </script>
 
@@ -74,6 +105,7 @@ onUnmounted(() => {
     @mouseleave="scheduleClose"
   >
     <button
+      type="button"
       class="nav-dropdown__trigger"
       :class="{
         'is-active': isNavActive(route.path, item.to),
@@ -176,21 +208,28 @@ onUnmounted(() => {
   position: absolute;
   top: calc(100% + 0.65rem);
   left: 50%;
-  z-index: 30;
+  z-index: 100;
   display: grid;
   gap: 0.2rem;
   min-width: 19rem;
   padding: var(--space-2);
-  border: 1px solid color-mix(in srgb, var(--color-border) 90%, var(--color-brand-primary));
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
-  box-shadow:
-    0 18px 40px color-mix(in srgb, #020617 18%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 8%, transparent);
-  backdrop-filter: blur(16px);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(20px);
   transform: translateX(-50%);
   animation: panel-in var(--duration-fast) var(--ease-out);
-  overflow: hidden;
+}
+
+/* Invisible bridge so mouse does not leave hover area */
+.nav-dropdown__panel::before {
+  content: '';
+  position: absolute;
+  top: -0.75rem;
+  left: 0;
+  right: 0;
+  height: 0.75rem;
 }
 
 .nav-dropdown__panel-glow {
