@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import AuthFormCard from '@/components/auth/AuthFormCard.vue'
 import PasswordField from '@/components/auth/PasswordField.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
@@ -8,7 +8,11 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import { requestSsoLogin } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 import { isValidEmail } from '@/utils/validation'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const form = reactive({
   email: '',
@@ -65,19 +69,16 @@ const onSubmit = async () => {
 
   try {
     // 1. Post credentials directly to backend API route
-    const { token, consume_url } = await requestSsoLogin({
+    const result = await requestSsoLogin({
       email: form.email.trim(),
       password: form.password,
     })
 
-    // 2. Extract plain text token and physically redirect user's browser to the backend domain
-    if (consume_url && token) {
-      window.location.href = `${consume_url}?token=${token}`
-    } else if (consume_url) {
-      window.location.href = consume_url
-    } else {
-      window.location.href = 'https://valu8er.instaging.net'
-    }
+    // 2. Save authenticated session in Pinia store and localStorage
+    authStore.setSession(result)
+
+    // 3. Navigate user to home page with top menu showing user greeting & dropdown
+    await router.push('/home')
   } catch (error: any) {
     loading.value = false
     console.error('Login failed', error)

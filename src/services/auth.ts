@@ -5,10 +5,46 @@ export interface SsoRequestPayload {
   password: string
 }
 
+export interface UserOrganization {
+  id?: number
+  uuid?: string
+  company_name?: string
+  logo?: string
+  [key: string]: any
+}
+
+export interface UserPlan {
+  id?: number
+  name?: string
+  price?: string
+  [key: string]: any
+}
+
+export interface AuthUser {
+  id: number
+  first_name: string
+  last_name: string
+  full_name: string
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  organization?: UserOrganization | null
+  current_plan?: UserPlan | null
+  [key: string]: any
+}
+
 export interface SsoResponse {
+  user?: AuthUser
   token: string
   consume_url: string
   [key: string]: any
+}
+
+export interface LoginResult {
+  user?: AuthUser
+  token: string
+  consume_url: string
 }
 
 /**
@@ -19,7 +55,7 @@ export const SSO_API_URL = 'https://valu8er.instaging.net/api/v1/sso/request'
 
 export async function requestSsoLogin(
   payload: SsoRequestPayload,
-): Promise<{ token: string; consume_url: string }> {
+): Promise<LoginResult> {
   const endpoints = [
     SSO_API_URL,
     '/api/v1/sso/request',
@@ -45,12 +81,14 @@ export async function requestSsoLogin(
 
       const token = response.data?.token || ''
       const consumeUrl = response.data?.consume_url || ''
+      const user = response.data?.user
 
       if (!token || !consumeUrl) {
         throw new Error('Authentication response did not return token or consume_url.')
       }
 
       return {
+        user,
         token,
         consume_url: consumeUrl,
       }
@@ -65,4 +103,3 @@ export async function requestSsoLogin(
 
   throw lastError || new Error('Network error. Unable to connect to authentication server.')
 }
-

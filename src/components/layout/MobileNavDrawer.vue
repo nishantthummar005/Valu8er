@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { nextTick, ref, toRef, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import { isNavActive, primaryNav, type NavItem } from '@/config/navigation'
 import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps<{
   open: boolean
@@ -16,9 +17,24 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 const panel = ref<HTMLElement | null>(null)
 const expanded = ref<string | null>(null)
 const lastFocus = ref<HTMLElement | null>(null)
+
+function handleAdminDashboard() {
+  emit('close')
+  authStore.openDashboard()
+}
+
+function handleLogout() {
+  emit('close')
+  authStore.logout()
+  if (route.path.startsWith('/login')) {
+    void router.push('/home')
+  }
+}
 
 useBodyScrollLock(toRef(props, 'open'))
 
@@ -150,8 +166,37 @@ const onKeydown = (event: KeyboardEvent) => {
         </nav>
 
         <footer class="mobile-drawer__actions">
-          <AppButton variant="outline" block to="/login">Login</AppButton>
-          <AppButton block to="/get-started">Get Started</AppButton>
+          <template v-if="authStore.isAuthenticated">
+            <div class="mobile-drawer__user-card">
+              <div class="mobile-drawer__user-avatar">
+                <img
+                  v-if="authStore.user?.avatar"
+                  :src="authStore.user.avatar"
+                  :alt="authStore.fullName"
+                  class="mobile-drawer__user-img"
+                />
+                <span v-else class="mobile-drawer__user-initials">
+                  {{ authStore.initials }}
+                </span>
+              </div>
+              <div class="mobile-drawer__user-info">
+                <span class="mobile-drawer__user-greeting">Hi {{ authStore.displayName }}</span>
+                <span class="mobile-drawer__user-email">{{ authStore.email }}</span>
+              </div>
+            </div>
+
+            <AppButton variant="primary" block @click="handleAdminDashboard">
+              Admin Dashboard
+            </AppButton>
+            <AppButton variant="outline" block @click="handleLogout">
+              Logout
+            </AppButton>
+          </template>
+
+          <template v-else>
+            <AppButton variant="outline" block to="/login">Login</AppButton>
+            <AppButton block to="/get-started">Get Started</AppButton>
+          </template>
         </footer>
       </aside>
     </div>
@@ -296,8 +341,69 @@ const onKeydown = (event: KeyboardEvent) => {
 
 .mobile-drawer__actions {
   flex-direction: column;
+  gap: var(--space-3);
   border-top: 1px solid var(--color-border);
   background: color-mix(in srgb, var(--color-surface-muted) 65%, var(--color-surface));
+}
+
+.mobile-drawer__user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
+}
+
+.mobile-drawer__user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0284c7, #0d9488);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.mobile-drawer__user-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-drawer__user-initials {
+  letter-spacing: 0.05em;
+}
+
+.mobile-drawer__user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mobile-drawer__user-greeting {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-drawer__user-email {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @keyframes drawer-in {
