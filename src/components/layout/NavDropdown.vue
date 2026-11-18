@@ -164,6 +164,14 @@ onUnmounted(() => {
   transform: rotate(180deg);
 }
 
+@media (min-width: 1360px) {
+  .nav-dropdown__trigger {
+    padding: 0 0.85rem;
+    font-size: 0.875rem;
+    min-height: 2.35rem;
+  }
+}
+
 .nav-dropdown__panel {
   position: absolute;
   top: calc(100% + 0.65rem);

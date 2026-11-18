@@ -21,6 +21,25 @@ export const primaryNav: NavItem[] = [
   { label: 'About Us', to: '/about' },
   { label: 'Platform', to: '/platform' },
   { label: 'Pricing', to: '/pricing' },
+  { label: 'CCF Calculator', to: '/ccf-calculator' },
+  {
+    label: 'Methodology',
+    to: '/methodology',
+    children: [
+      {
+        label: 'Methodology Tree',
+        to: '/methodology/tree',
+        icon: 'mdi-file-tree-outline',
+        description: 'Decision tree for valuation methodology',
+      },
+      {
+        label: 'Methodology Selector',
+        to: '/methodology/selector',
+        icon: 'mdi-format-list-checks',
+        description: 'Interactive Valu8er methodology selector',
+      },
+    ],
+  },
   { label: 'Schedule Appointment', to: '/schedule-appointment' },
   { label: 'Contact Us', to: '/contact' },
 ]
@@ -31,6 +50,9 @@ export const footerColumns: FooterColumn[] = [
     links: [
       { label: 'Platform', to: '/platform' },
       { label: 'Pricing', to: '/pricing' },
+      { label: 'CCF Calculator', to: '/ccf-calculator' },
+      { label: 'Methodology Tree', to: '/methodology/tree' },
+      { label: 'Methodology Selector', to: '/methodology/selector' },
       { label: 'Schedule Appointment', to: '/schedule-appointment' },
       { label: 'Get Started', to: '/get-started' },
     ],

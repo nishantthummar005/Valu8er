@@ -72,6 +72,28 @@ export const router = createRouter({
           meta: { title: 'Pricing', eyebrow: 'Website' },
         },
         {
+          path: 'ccf-calculator',
+          name: 'ccf-calculator',
+          component: () => import('@/pages/CcfCalculatorPage.vue'),
+          meta: { title: 'CCF Calculator', eyebrow: 'Valuation Calculator' },
+        },
+        {
+          path: 'methodology',
+          redirect: '/methodology/tree',
+        },
+        {
+          path: 'methodology/tree',
+          name: 'methodology-tree',
+          component: () => import('@/pages/methodology/MethodologyTreePage.vue'),
+          meta: { title: 'Methodology Tree', eyebrow: 'Valuation Methodology' },
+        },
+        {
+          path: 'methodology/selector',
+          name: 'methodology-selector',
+          component: () => import('@/pages/methodology/MethodologySelectorPage.vue'),
+          meta: { title: 'Methodology Selector', eyebrow: 'Valuation Methodology' },
+        },
+        {
           path: 'about',
           name: 'about',
           component: () => import('@/pages/AboutPage.vue'),
