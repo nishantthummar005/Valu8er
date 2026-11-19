@@ -30,9 +30,11 @@ export type FeatureCell = string | boolean
 
 export type FeatureRow = {
   label: string
-  essentials: FeatureCell
-  professional: FeatureCell
-  enterprise: FeatureCell
+  labelHtml?: string
+  tablesOnly: FeatureCell
+  briefReport: FeatureCell
+  intermediate: FeatureCell
+  advanced: FeatureCell
 }
 
 export type FeatureGroup = {
@@ -113,40 +115,267 @@ export const pricingPlans: PricingPlan[] = [
 
 export const featureGroups: FeatureGroup[] = [
   {
-    title: 'Workspace',
+    title: 'Report Specifications & Capacity',
     rows: [
-      { label: 'Active valuation files', essentials: 'Up to 5', professional: 'Unlimited', enterprise: 'Unlimited' },
-      { label: 'Estimated value, range & confidence', essentials: true, professional: true, enterprise: true },
-      { label: 'Financial analysis views', essentials: true, professional: true, enterprise: true },
-      { label: 'Value drivers panel', essentials: true, professional: true, enterprise: true },
-      { label: 'Historical trends', essentials: 'Core', professional: 'Full', enterprise: 'Full' },
-      { label: 'Benchmark comparisons', essentials: 'Illustrative', professional: 'Full', enterprise: 'Full' },
-      { label: 'Report summary preview', essentials: true, professional: true, enterprise: true },
+      {
+        label: '# of Credits Required',
+        tablesOnly: '10',
+        briefReport: '20',
+        intermediate: '40',
+        advanced: '60',
+      },
+      {
+        label: '# of Pages',
+        tablesOnly: '10 to 15',
+        briefReport: '35 to 45+',
+        intermediate: '50 to 60+',
+        advanced: '70 to 80+',
+      },
+      {
+        label: '# of Methodologies*',
+        tablesOnly: '4',
+        briefReport: '7',
+        intermediate: '7',
+        advanced: '7',
+      },
     ],
   },
   {
-    title: 'Collaboration',
+    title: 'Standards & Valuation Basics',
     rows: [
-      { label: 'Multi-user access', essentials: false, professional: true, enterprise: true },
-      { label: 'Shared workspace notes', essentials: false, professional: true, enterprise: true },
-      { label: 'Team handoff views', essentials: false, professional: true, enterprise: true },
+      {
+        label: 'Suitable for American & Canadian Valuation Standards',
+        tablesOnly: false,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Asset Deal or Share Valuation',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'AI Inputting of Financial Statements',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'AI Suggested Normalization of Items',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'AI Suggested Enterprise Value Range',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: '2000+ Industries',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'In-House Comparables Assistance',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Stub Period Calculator',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Hard Assets vs Goodwill Allocation',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Key Metrics Chart (Sales, Margins and Growth)',
+        tablesOnly: true,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
     ],
   },
   {
-    title: 'Controls & security',
+    title: 'Reporting, Governance & Compliance',
     rows: [
-      { label: 'Role-based permissions', essentials: false, professional: false, enterprise: true },
-      { label: 'SSO-ready access', essentials: false, professional: false, enterprise: true },
-      { label: 'File lock & sign-off trail', essentials: false, professional: false, enterprise: true },
+      {
+        label: 'Formal Full Body Report Generation suitable for CRA',
+        labelHtml: 'Formal Full Body Report Generation suitable for <span style="color: #ef4444; font-weight: 700;">CRA</span>',
+        tablesOnly: false,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'En Bloc Value and Individual Interest Conclusion**',
+        tablesOnly: false,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Automatic Trapped-In Taxes Calculations',
+        tablesOnly: false,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Economics - GDP Analysis',
+        tablesOnly: false,
+        briefReport: true,
+        intermediate: true,
+        advanced: true,
+      },
     ],
   },
   {
-    title: 'Support',
+    title: 'Industry Benchmarking & Financial Analysis',
     rows: [
-      { label: 'Support channel', essentials: 'Email', professional: 'Priority + chat', enterprise: 'Dedicated + SLA' },
-      { label: 'Onboarding', essentials: 'Self-serve', professional: 'Walkthrough', enterprise: 'Guided implementation' },
-      { label: 'Training hours', essentials: '—', professional: '2 hrs', enterprise: '10 hrs' },
-      { label: 'Success contact', essentials: '—', professional: 'Shared', enterprise: 'Dedicated' },
+      {
+        label: 'Industry Historical and Forecasted Growth',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Industry Average Employee Productivity',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Industry Average Establishment Revenues and Wage Metrics',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Economics - Inflation and CPI Analysis',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Key Metrics Comparison for Goodwill Reasonability (Body)',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'EBITDA Margin Schedule',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: true,
+        advanced: true,
+      },
+      {
+        label: 'Company Revenue Growth',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: '—',
+        advanced: '—',
+      },
+    ],
+  },
+  {
+    title: 'Economic & Market Comparables Charts',
+    rows: [
+      {
+        label: 'Economics - Country Average Hourly Wage',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Economics - Country Average Unemployment Rate',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Economics - Country Prime Lending Rate',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Industry - Revenues',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Industry - Establishments',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Industry - Revenue Productivity',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Revenues of Subject vs Comparables',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'EBITDA Margin % of Subject vs Comparables',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Growth Rate of Subject vs Comparables',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
+      {
+        label: 'Average Revenues per Employee - Subject vs Industry',
+        tablesOnly: false,
+        briefReport: false,
+        intermediate: false,
+        advanced: '—',
+      },
     ],
   },
 ]
