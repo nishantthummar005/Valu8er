@@ -103,3 +103,43 @@ export async function requestSsoLogin(
 
   throw lastError || new Error('Network error. Unable to connect to authentication server.')
 }
+
+/**
+ * SSO Logout endpoint as verified in Postman / API docs:
+ * POST https://valu8er.instaging.net/api/v1/sso/logout
+ */
+export const SSO_LOGOUT_API_URL = 'https://valu8er.instaging.net/api/v1/sso/logout'
+
+export async function requestSsoLogout(token?: string | null): Promise<void> {
+  const endpoints = [
+    SSO_LOGOUT_API_URL,
+    '/api/v1/sso/logout',
+  ]
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const payload = token ? { token } : {}
+
+  for (const url of endpoints) {
+    try {
+      await axios.post(
+        url,
+        payload,
+        {
+          headers,
+          timeout: 6000,
+        },
+      )
+      return
+    } catch {
+      // Continue to next endpoint or silently proceed
+    }
+  }
+}

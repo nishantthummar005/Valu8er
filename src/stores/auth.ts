@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { AuthUser } from '@/services/auth'
+import { requestSsoLogout, type AuthUser } from '@/services/auth'
 
 const STORAGE_USER_KEY = 'valu8er_auth_user'
 const STORAGE_TOKEN_KEY = 'valu8er_auth_token'
@@ -70,15 +70,27 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(STORAGE_CONSUMED_KEY)
   }
 
-  function logout() {
-    user.value = null
-    token.value = null
-    consumeUrl.value = null
-    tokenConsumed.value = false
-    localStorage.removeItem(STORAGE_USER_KEY)
-    localStorage.removeItem(STORAGE_TOKEN_KEY)
-    localStorage.removeItem(STORAGE_CONSUME_KEY)
-    localStorage.removeItem(STORAGE_CONSUMED_KEY)
+  const isLoggingOut = ref(false)
+
+  async function logout(): Promise<void> {
+    isLoggingOut.value = true
+    const currentToken = token.value
+
+    try {
+      await requestSsoLogout(currentToken)
+    } catch (err) {
+      console.warn('Logout API warning:', err)
+    } finally {
+      user.value = null
+      token.value = null
+      consumeUrl.value = null
+      tokenConsumed.value = false
+      localStorage.removeItem(STORAGE_USER_KEY)
+      localStorage.removeItem(STORAGE_TOKEN_KEY)
+      localStorage.removeItem(STORAGE_CONSUME_KEY)
+      localStorage.removeItem(STORAGE_CONSUMED_KEY)
+      isLoggingOut.value = false
+    }
   }
 
   function openDashboard() {
@@ -102,6 +114,7 @@ export const useAuthStore = defineStore('auth', () => {
     email,
     organizationName,
     initials,
+    isLoggingOut,
     setSession,
     logout,
     openDashboard,

@@ -28,9 +28,9 @@ function handleAdminDashboard() {
   authStore.openDashboard()
 }
 
-function handleLogout() {
+async function handleLogout() {
   emit('close')
-  authStore.logout()
+  await authStore.logout()
   if (route.path.startsWith('/login')) {
     void router.push('/home')
   }
@@ -188,8 +188,13 @@ const onKeydown = (event: KeyboardEvent) => {
             <AppButton variant="primary" block @click="handleAdminDashboard">
               Admin Dashboard
             </AppButton>
-            <AppButton variant="outline" block @click="handleLogout">
-              Logout
+            <AppButton
+              variant="outline"
+              block
+              :disabled="authStore.isLoggingOut"
+              @click="handleLogout"
+            >
+              {{ authStore.isLoggingOut ? 'Logging out...' : 'Logout' }}
             </AppButton>
           </template>
 

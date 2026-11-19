@@ -39,9 +39,9 @@ function handleAdminDashboard() {
   authStore.openDashboard()
 }
 
-function handleLogout() {
+async function handleLogout() {
   isUserMenuOpen.value = false
-  authStore.logout()
+  await authStore.logout()
   if (route.path.startsWith('/login')) {
     void router.push('/home')
   }
@@ -157,10 +157,16 @@ onUnmounted(() => {
                   <button
                     type="button"
                     class="user-menu__item user-menu__item--danger"
+                    :disabled="authStore.isLoggingOut"
                     @click="handleLogout"
                   >
-                    <v-icon icon="mdi-logout" size="18" class="user-menu__item-icon" />
-                    <span>Logout</span>
+                    <v-icon
+                      :icon="authStore.isLoggingOut ? 'mdi-loading' : 'mdi-logout'"
+                      size="18"
+                      class="user-menu__item-icon"
+                      :class="{ 'mdi-spin': authStore.isLoggingOut }"
+                    />
+                    <span>{{ authStore.isLoggingOut ? 'Logging out...' : 'Logout' }}</span>
                   </button>
                 </div>
               </div>
