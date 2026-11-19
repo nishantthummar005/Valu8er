@@ -196,7 +196,7 @@ export function formatPrice(amount: number | string) {
 }
 
 export function priceFor(plan: PricingPlan, cycle: BillingCycle): number | string {
-  if (plan.isCustom || (plan.name.toLowerCase().includes('enterprise') && plan.monthly === 0)) {
+  if (plan.isCustom && !plan.annual && !plan.quarterly && !plan.monthly) {
     return 'Custom'
   }
   if (cycle === 'annual') return plan.annual
@@ -205,10 +205,10 @@ export function priceFor(plan: PricingPlan, cycle: BillingCycle): number | strin
 }
 
 export function billingNote(cycle: BillingCycle, plan?: PricingPlan) {
-  if (plan?.isCustom || plan?.name.toLowerCase().includes('enterprise')) {
+  if (plan?.isCustom && !plan?.quarterlyBilledTotal && !plan?.annualBilledTotal) {
     return 'tailored firm rollout'
   }
-  if (plan && plan.monthly === 0) {
+  if (plan && plan.monthly === 0 && plan.annual === 0) {
     return 'free forever, no card needed'
   }
   if (cycle === 'annual') {

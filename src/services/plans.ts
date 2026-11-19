@@ -241,20 +241,21 @@ export const FALLBACK_PLANS: PricingPlan[] = [
     id: 5,
     name: 'Enterprise',
     description: STATIC_DESCRIPTIONS.enterprise,
-    monthly: 0,
-    quarterly: 0,
-    annual: 0,
-    price: 0,
+    monthly: 7515,
+    quarterly: 7515,
+    annual: 6764,
+    price: 7515,
     currency: 'CAD',
-    isCustom: true,
-    credits: 500,
+    quarterlyBilledTotal: 22545,
+    annualBilledTotal: 81162,
+    credits: 501,
     credits_bonus: 1000,
     cost_per_credits: 15,
     cta: 'Talk to Us',
-    ctaTo: '/contact',
+    ctaTo: '/contact?plan=enterprise&credits=501',
     includesLabel: 'Everything in Large, plus',
     highlights: [
-      '**500+ credits** + **1,000 bonus credits**',
+      '**501 credits** + **1,000 bonus credits**',
       '**$15** volume credit rate',
       '**Role-based permissions** & audit-friendly logs',
       'SSO-ready enterprise security',
@@ -270,6 +271,7 @@ export const FALLBACK_PLANS: PricingPlan[] = [
 export function transformPlansPricingItem(
   item: ApiPlansPricingItem,
   country: Country = 'Canada',
+  customCredits: number = 501,
 ): PricingPlan {
   const normalizedName = item.plan_name.toLowerCase()
   const isEnterprise = normalizedName.includes('enterprise')
@@ -284,18 +286,18 @@ export function transformPlansPricingItem(
   if (normalizedName.includes('small')) monthlyCredits = 30
   else if (normalizedName.includes('medium')) monthlyCredits = 90
   else if (normalizedName.includes('large')) monthlyCredits = 200
-  else if (isEnterprise) monthlyCredits = 500
+  else if (isEnterprise) monthlyCredits = customCredits || 501
 
   // Monthly rate
-  const monthlyRate = isFree || isEnterprise ? 0 : Math.round(baseMonthly)
+  const monthlyRate = isFree ? 0 : Math.round(baseMonthly)
 
   // Quarterly rate: same base monthly price, billed quarterly
-  const quarterlyMonthlyRate = isFree || isEnterprise ? 0 : Math.round(baseMonthly)
-  const quarterlyBilledTotal = isFree || isEnterprise ? 0 : baseMonthly * 3
+  const quarterlyMonthlyRate = isFree ? 0 : Math.round(baseMonthly)
+  const quarterlyBilledTotal = isFree ? 0 : Math.round(baseMonthly * 3)
 
   // Annual rate: total_billed_amount divided by 12 (with 10% annual savings)
-  const annualMonthlyRate = isFree || isEnterprise ? 0 : Math.round(totalBilled / 12)
-  const annualBilledTotal = isFree || isEnterprise ? 0 : totalBilled
+  const annualMonthlyRate = isFree ? 0 : Math.round(totalBilled / 12)
+  const annualBilledTotal = isFree ? 0 : Math.round(totalBilled)
 
   let highlights: string[] = []
   let includesLabel = 'Included with your plan'
@@ -344,7 +346,7 @@ export function transformPlansPricingItem(
   } else if (isEnterprise) {
     includesLabel = 'Everything in Large, plus'
     highlights = [
-      `**500+ credits** + **${bonusCredits} bonus credits**`,
+      `**${monthlyCredits.toLocaleString()} credits** + **${bonusCredits.toLocaleString()} bonus credits**`,
       `**$${costFormatted}** volume credit rate`,
       '**Role-based permissions** & audit-friendly logs',
       'SSO-ready enterprise security',
@@ -371,12 +373,12 @@ export function transformPlansPricingItem(
     currency: item.currency || (country === 'USA' ? 'USD' : 'CAD'),
     quarterlyBilledTotal,
     annualBilledTotal,
-    isCustom: isEnterprise,
+    isCustom: false,
     credits: monthlyCredits,
     credits_bonus: bonusCredits,
     cost_per_credits: costPerCredit,
     cta: isEnterprise ? 'Talk to Us' : isFree ? 'Start Free Trial' : 'Get Started',
-    ctaTo: isEnterprise ? '/contact' : '/get-started',
+    ctaTo: isEnterprise ? `/contact?plan=enterprise&credits=${monthlyCredits}` : isFree ? '/get-started' : '/get-started',
     includesLabel,
     highlights,
   }
@@ -386,8 +388,9 @@ export function transformPlansPricingItem(
  * Fetch country and billing-cycle specific pricing from POST /api/v1/plans-pricing
  */
 export async function getPlansPricing(
-  billingCycle: BillingCycle = 'annual',
+  billingCycle: BillingCycle = 'quarterly',
   country: Country = 'Canada',
+  customCredits: number = 501,
 ): Promise<PricingPlan[]> {
   const endpoints = [
     'https://valu8er.instaging.net/api/v1/plans-pricing',
@@ -401,6 +404,7 @@ export async function getPlansPricing(
         {
           billing_cycle: billingCycle,
           country,
+          custom_credits: customCredits,
         },
         {
           headers: {
@@ -412,7 +416,9 @@ export async function getPlansPricing(
       )
 
       if (response.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
-        return response.data.data.map((item) => transformPlansPricingItem(item, country))
+        return response.data.data.map((item) =>
+          transformPlansPricingItem(item, country, customCredits),
+        )
       }
     } catch {
       // Try next endpoint or fall back
@@ -424,7 +430,39 @@ export async function getPlansPricing(
   const currency: CurrencyCode = country === 'USA' ? 'USD' : 'CAD'
 
   return FALLBACK_PLANS.map((plan) => {
-    if (plan.isCustom || plan.monthly === 0) {
+    if (plan.id === 5 || plan.name.toLowerCase().includes('enterprise')) {
+      const costPerCredit = +(15 * rate).toFixed(2)
+      const baseMonthly = customCredits * costPerCredit
+      const quarterlyMonthly = Math.round(baseMonthly)
+      const quarterlyTotal = Math.round(baseMonthly * 3)
+      const annualMonthly = Math.round(baseMonthly * 0.9)
+      const annualTotal = Math.round(baseMonthly * 12 * 0.9)
+      const costFormatted = formatCreditCost(costPerCredit)
+
+      return {
+        ...plan,
+        currency,
+        credits: customCredits,
+        price: baseMonthly,
+        monthly: quarterlyMonthly,
+        quarterly: quarterlyMonthly,
+        annual: annualMonthly,
+        quarterlyBilledTotal: quarterlyTotal,
+        annualBilledTotal: annualTotal,
+        cost_per_credits: costPerCredit,
+        highlights: [
+          `**${customCredits.toLocaleString()} credits** + **1,000 bonus credits**`,
+          `**$${costFormatted}** volume credit rate`,
+          '**Role-based permissions** & audit-friendly logs',
+          'SSO-ready enterprise security',
+          'Dedicated success manager',
+          '**4-hour support SLA**',
+        ],
+        ctaTo: `/contact?plan=enterprise&credits=${customCredits}`,
+      }
+    }
+
+    if (plan.monthly === 0) {
       return { ...plan, currency }
     }
 
@@ -452,5 +490,5 @@ export async function getPlansPricing(
  * Backward compatibility: get base pricing plans
  */
 export async function getPricingPlans(): Promise<PricingPlan[]> {
-  return getPlansPricing('annual', 'Canada')
+  return getPlansPricing('quarterly', 'Canada', 501)
 }

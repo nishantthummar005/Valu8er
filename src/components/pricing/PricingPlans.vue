@@ -19,74 +19,136 @@ import {
   FALLBACK_PLANS,
   formatCreditCost,
   getPlansPricing,
+  getUsdExchangeRate,
 } from '@/services/plans'
 
 const root = ref<HTMLElement | null>(null)
 const { visible } = useReveal(root)
 
 const country = ref<Country>('Canada')
-const cycle = ref<BillingCycle>('annual')
+const cycle = ref<BillingCycle>('quarterly')
 const loading = ref(false)
 const plans = ref<PricingPlan[]>(FALLBACK_PLANS)
 
-const isCountryOpen = ref(false)
-const countryDropdownRef = ref<HTMLElement | null>(null)
+const enterpriseCredits = ref<number>(501)
+const enterpriseCreditsInput = ref<number | string>(501)
 
 const currentCountryOption = computed(() => {
   return COUNTRIES.find((c) => c.code === country.value) || COUNTRIES[0]
 })
 
-async function loadPlans() {
-  loading.value = true
+function isEnterprisePlan(plan: PricingPlan): boolean {
+  return plan.id === 5 || plan.name.toLowerCase().includes('enterprise')
+}
+
+// Compute/apply dynamic enterprise calculations instantly to prevent UI latency
+function updateEnterprisePlanLocally() {
+  const planIndex = plans.value.findIndex((p) => isEnterprisePlan(p))
+  if (planIndex === -1) return
+  const currentPlan = plans.value[planIndex]
+  const rate = country.value === 'USA' ? getUsdExchangeRate() : 1.0
+  const costPerCredit = +(15 * rate).toFixed(2)
+  const baseMonthly = enterpriseCredits.value * costPerCredit
+  const quarterlyMonthly = Math.round(baseMonthly)
+  const quarterlyTotal = Math.round(baseMonthly * 3)
+  const annualMonthly = Math.round(baseMonthly * 0.9)
+  const annualTotal = Math.round(baseMonthly * 12 * 0.9)
+  const costFormatted = formatCreditCost(costPerCredit)
+
+  plans.value[planIndex] = {
+    ...currentPlan,
+    credits: enterpriseCredits.value,
+    price: baseMonthly,
+    monthly: quarterlyMonthly,
+    quarterly: quarterlyMonthly,
+    annual: annualMonthly,
+    quarterlyBilledTotal: quarterlyTotal,
+    annualBilledTotal: annualTotal,
+    cost_per_credits: costPerCredit,
+    highlights: [
+      `**${enterpriseCredits.value.toLocaleString()} credits** + **1,000 bonus credits**`,
+      `**$${costFormatted}** volume credit rate`,
+      '**Role-based permissions** & audit-friendly logs',
+      'SSO-ready enterprise security',
+      'Dedicated success manager',
+      '**4-hour support SLA**',
+    ],
+    ctaTo: `/contact?plan=enterprise&credits=${enterpriseCredits.value}`,
+  }
+}
+
+let loadTimer: ReturnType<typeof setTimeout> | null = null
+
+async function loadPlans(showLoader = true) {
+  if (showLoader) loading.value = true
   try {
-    const dynamicPlans = await getPlansPricing(cycle.value, country.value)
+    const dynamicPlans = await getPlansPricing(cycle.value, country.value, enterpriseCredits.value)
     if (dynamicPlans && dynamicPlans.length > 0) {
       plans.value = dynamicPlans
     }
   } catch {
     // Keep fallback plans
   } finally {
-    loading.value = false
+    if (showLoader) loading.value = false
   }
 }
 
 function handleCountrySelect(code: Country) {
-  if (country.value === code) {
-    isCountryOpen.value = false
-    return
-  }
+  if (country.value === code) return
   country.value = code
-  isCountryOpen.value = false
-  void loadPlans()
+  updateEnterprisePlanLocally()
+  void loadPlans(true)
 }
 
 function handleCycleChange(newCycle: BillingCycle) {
   if (cycle.value === newCycle) return
   cycle.value = newCycle
-  void loadPlans()
+  void loadPlans(true)
 }
 
-function handlePointerOutside(event: MouseEvent) {
-  if (countryDropdownRef.value && !countryDropdownRef.value.contains(event.target as Node)) {
-    isCountryOpen.value = false
+function setEnterpriseCredits(val: number) {
+  const cleanVal = Math.max(501, Math.round(val))
+  enterpriseCredits.value = cleanVal
+  enterpriseCreditsInput.value = cleanVal
+  updateEnterprisePlanLocally()
+  debounceRemoteUpdate()
+}
+
+function adjustEnterpriseCredits(delta: number) {
+  setEnterpriseCredits(enterpriseCredits.value + delta)
+}
+
+function onEnterpriseInput() {
+  const num = Number(enterpriseCreditsInput.value)
+  if (!isNaN(num) && num >= 501) {
+    enterpriseCredits.value = Math.round(num)
+    updateEnterprisePlanLocally()
+    debounceRemoteUpdate()
   }
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && isCountryOpen.value) {
-    isCountryOpen.value = false
-  }
+function validateEnterpriseCredits() {
+  const num = Number(enterpriseCreditsInput.value)
+  const valid = isNaN(num) || num < 501 ? 501 : Math.round(num)
+  enterpriseCredits.value = valid
+  enterpriseCreditsInput.value = valid
+  updateEnterprisePlanLocally()
+  debounceRemoteUpdate()
+}
+
+function debounceRemoteUpdate() {
+  if (loadTimer) clearTimeout(loadTimer)
+  loadTimer = setTimeout(() => {
+    void loadPlans(false)
+  }, 400)
 }
 
 onMounted(() => {
-  document.addEventListener('mousedown', handlePointerOutside)
-  document.addEventListener('keydown', handleKeydown)
   void loadPlans()
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousedown', handlePointerOutside)
-  document.removeEventListener('keydown', handleKeydown)
+  if (loadTimer) clearTimeout(loadTimer)
 })
 
 function renderHighlight(text: string) {
@@ -105,64 +167,51 @@ function renderHighlight(text: string) {
           </h2>
 
           <div class="plans__toolbar">
-            <!-- Country Dropdown -->
-            <div ref="countryDropdownRef" class="country-select">
-              <span class="country-select__label">Country:</span>
-              <div class="country-dropdown">
+            <!-- Country Toggle with Sliding Animation -->
+            <div class="country-slider-wrap">
+              <span class="country-slider-label">Country:</span>
+              <div
+                class="country-slider"
+                role="radiogroup"
+                aria-label="Country selection"
+              >
+                <!-- Animated background glider -->
+                <div
+                  class="country-slider__glider"
+                  :class="{ 'is-usa': country === 'USA' }"
+                  aria-hidden="true"
+                />
+
                 <button
                   type="button"
-                  class="country-dropdown__trigger"
-                  :class="{ 'is-open': isCountryOpen }"
-                  :aria-expanded="isCountryOpen"
-                  aria-label="Select Country"
-                  @click="isCountryOpen = !isCountryOpen"
+                  role="radio"
+                  :aria-checked="country === 'Canada'"
+                  class="country-slider__btn"
+                  :class="{ 'is-active': country === 'Canada' }"
+                  @click="handleCountrySelect('Canada')"
                 >
-                  <span class="country-dropdown__flag">{{ currentCountryOption.flag }}</span>
-                  <span class="country-dropdown__name">{{ currentCountryOption.name }}</span>
-                  <span class="country-dropdown__badge">{{ currentCountryOption.currency }}</span>
-                  <v-icon
-                    icon="mdi-chevron-down"
-                    size="16"
-                    class="country-dropdown__chevron"
-                    :class="{ 'is-rotated': isCountryOpen }"
-                  />
+                  <span class="country-slider__flag">🇨🇦</span>
+                  <span class="country-slider__name">Canada</span>
+                  <span class="country-slider__badge">CAD</span>
                 </button>
 
-                <transition name="dropdown-pop">
-                  <div v-if="isCountryOpen" class="country-dropdown__menu" role="listbox">
-                    <button
-                      v-for="opt in COUNTRIES"
-                      :key="opt.code"
-                      type="button"
-                      class="country-dropdown__item"
-                      :class="{ 'is-active': country === opt.code }"
-                      @click="handleCountrySelect(opt.code)"
-                    >
-                      <span class="country-dropdown__flag">{{ opt.flag }}</span>
-                      <span class="country-dropdown__name">{{ opt.name }}</span>
-                      <span class="country-dropdown__badge">{{ opt.currency }}</span>
-                      <v-icon
-                        v-if="country === opt.code"
-                        icon="mdi-check"
-                        size="15"
-                        class="country-dropdown__check"
-                      />
-                    </button>
-                  </div>
-                </transition>
+                <button
+                  type="button"
+                  role="radio"
+                  :aria-checked="country === 'USA'"
+                  class="country-slider__btn"
+                  :class="{ 'is-active': country === 'USA' }"
+                  @click="handleCountrySelect('USA')"
+                >
+                  <span class="country-slider__flag">🇺🇸</span>
+                  <span class="country-slider__name">USA</span>
+                  <span class="country-slider__badge">USD</span>
+                </button>
               </div>
             </div>
 
-            <!-- Billing Cycle Tabs -->
+            <!-- Billing Cycle Tabs (Quarterly & Annual only, monthly hidden) -->
             <div class="plans__toggle" role="group" aria-label="Billing cycle">
-              <button
-                type="button"
-                :aria-pressed="cycle === 'monthly'"
-                :class="{ 'is-active': cycle === 'monthly' }"
-                @click="handleCycleChange('monthly')"
-              >
-                Monthly
-              </button>
               <button
                 type="button"
                 :aria-pressed="cycle === 'quarterly'"
@@ -193,20 +242,86 @@ function renderHighlight(text: string) {
             v-for="plan in plans"
             :key="plan.id"
             class="plan"
-            :class="{ 'is-popular': plan.popular }"
+            :class="{
+              'is-popular': plan.popular,
+              'is-enterprise': isEnterprisePlan(plan),
+            }"
           >
             <div class="plan__head">
               <div class="plan__title">
                 <h3 class="text-h3">{{ plan.name }}</h3>
                 <AppBadge v-if="plan.popular" tone="brand">Most popular</AppBadge>
+                <AppBadge v-else-if="isEnterprisePlan(plan)" tone="neutral">Custom Volume</AppBadge>
               </div>
               <p class="text-body-sm">{{ plan.description }}</p>
+            </div>
+
+            <!-- Enterprise Credit Input / Calculator -->
+            <div v-if="isEnterprisePlan(plan)" class="enterprise-calc">
+              <div class="enterprise-calc__header">
+                <span class="enterprise-calc__title">
+                  <v-icon icon="mdi-database-edit-outline" size="15" />
+                  <span>Number of Credits</span>
+                </span>
+                <span class="enterprise-calc__min-tag">Min. 501</span>
+              </div>
+
+              <div class="enterprise-calc__control">
+                <button
+                  type="button"
+                  class="enterprise-calc__step"
+                  :disabled="enterpriseCredits <= 501"
+                  aria-label="Decrease credits"
+                  @click="adjustEnterpriseCredits(-10)"
+                >
+                  <v-icon icon="mdi-minus" size="14" />
+                </button>
+
+                <div class="enterprise-calc__field">
+                  <input
+                    id="enterprise-credits-input"
+                    v-model="enterpriseCreditsInput"
+                    type="number"
+                    min="501"
+                    step="1"
+                    class="enterprise-calc__input"
+                    aria-label="Number of credits"
+                    placeholder="501"
+                    @input="onEnterpriseInput"
+                    @blur="validateEnterpriseCredits"
+                    @keydown.enter="validateEnterpriseCredits"
+                  />
+                  <span class="enterprise-calc__unit">credits</span>
+                </div>
+
+                <button
+                  type="button"
+                  class="enterprise-calc__step"
+                  aria-label="Increase credits"
+                  @click="adjustEnterpriseCredits(10)"
+                >
+                  <v-icon icon="mdi-plus" size="14" />
+                </button>
+              </div>
+
+              <div class="enterprise-calc__presets">
+                <button
+                  v-for="amt in [501, 750, 1000, 2500]"
+                  :key="amt"
+                  type="button"
+                  class="enterprise-calc__chip"
+                  :class="{ 'is-active': enterpriseCredits === amt }"
+                  @click="setEnterpriseCredits(amt)"
+                >
+                  {{ amt.toLocaleString() }}
+                </button>
+              </div>
             </div>
 
             <div class="plan__price">
               <div class="plan__price-wrap">
                 <strong>{{ formatPrice(priceFor(plan, cycle)) }}</strong>
-                <span v-if="!plan.isCustom && plan.monthly > 0" class="plan__currency-tag">
+                <span v-if="plan.monthly > 0" class="plan__currency-tag">
                   {{ plan.currency || currentCountryOption.currency }}
                 </span>
               </div>
@@ -215,8 +330,8 @@ function renderHighlight(text: string) {
 
             <div v-if="plan.credits !== undefined" class="plan__credits-tag">
               <v-icon icon="mdi-database-check-outline" size="14" />
-              <span v-if="plan.isCustom || plan.name.toLowerCase().includes('enterprise')">
-                {{ plan.credits }}+ credits & volume rates
+              <span v-if="isEnterprisePlan(plan)">
+                {{ enterpriseCredits.toLocaleString() }} credits + {{ plan.credits_bonus }} bonus (${{ formatCreditCost(plan.cost_per_credits || 0) }}/ea)
               </span>
               <span v-else-if="plan.credits === 0">
                 {{ plan.credits_bonus }} bonus credits included
@@ -271,122 +386,113 @@ function renderHighlight(text: string) {
   gap: var(--space-4);
 }
 
-.country-select {
+/* Country Slider with Animated Glider */
+.country-slider-wrap {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.country-select__label {
+.country-slider-label {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-muted);
 }
 
-.country-dropdown {
+.country-slider {
   position: relative;
-}
-
-.country-dropdown__trigger {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.85rem;
+  padding: 3px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 0.875rem;
+  box-shadow: var(--shadow-xs);
+  user-select: none;
+}
+
+.country-slider__glider {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-brand-primary) 16%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 0 10px color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.country-slider__glider.is-usa {
+  transform: translateX(100%);
+}
+
+.country-slider__btn {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.country-slider__btn:hover {
+  color: var(--color-text);
+}
+
+.country-slider__btn.is-active {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.country-slider__flag {
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.country-slider__btn:hover .country-slider__flag,
+.country-slider__btn.is-active .country-slider__flag {
+  transform: scale(1.08);
+}
+
+.country-slider__name {
+  letter-spacing: -0.01em;
+}
+
+.country-slider__badge {
+  display: inline-block;
+  padding: 0.1rem 0.38rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  color: var(--color-brand-primary);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
   transition: all 0.2s ease;
 }
 
-.country-dropdown__trigger:hover,
-.country-dropdown__trigger.is-open {
-  border-color: var(--color-brand-primary);
-  background: color-mix(in srgb, var(--color-brand-primary) 6%, var(--color-surface));
+.country-slider__btn.is-active .country-slider__badge {
+  background: var(--color-brand-primary);
+  color: #051315;
 }
 
-.country-dropdown__flag {
-  font-size: 1.15rem;
-  line-height: 1;
-}
-
-.country-dropdown__name {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.country-dropdown__badge {
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
-  color: var(--color-brand-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.country-dropdown__chevron {
-  color: var(--color-text-muted);
-  transition: transform 0.2s ease;
-}
-
-.country-dropdown__chevron.is-rotated {
-  transform: rotate(180deg);
-}
-
-.country-dropdown__menu {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  left: 0;
-  z-index: 40;
-  min-width: 175px;
-  padding: 0.35rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  backdrop-filter: blur(16px);
-}
-
-.country-dropdown__item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text);
-  font-size: 0.85rem;
-  font-weight: 550;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.country-dropdown__item:hover {
-  background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
-  color: var(--color-brand-primary);
-}
-
-.country-dropdown__item.is-active {
-  background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
-  color: var(--color-brand-primary);
-  font-weight: 700;
-}
-
-.country-dropdown__check {
-  margin-left: auto;
-  color: var(--color-brand-primary);
-}
-
+/* Billing Cycle Toggle */
 .plans__toggle {
   display: inline-flex;
   flex-wrap: wrap;
@@ -484,6 +590,10 @@ function renderHighlight(text: string) {
     linear-gradient(180deg, color-mix(in srgb, var(--color-brand-primary) 8%, var(--color-surface)), var(--color-surface));
 }
 
+.plan.is-enterprise {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 28%, var(--color-border));
+}
+
 .plan__head,
 .plan__price {
   display: grid;
@@ -499,6 +609,149 @@ function renderHighlight(text: string) {
 
 .plan__title h3 {
   font-size: 1.3rem;
+  font-weight: 700;
+}
+
+/* Enterprise Custom Credits Calculator */
+.enterprise-calc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-brand-primary) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 22%, var(--color-border));
+}
+
+.enterprise-calc__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.enterprise-calc__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.775rem;
+  font-weight: 650;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+
+.enterprise-calc__min-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+}
+
+.enterprise-calc__control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.enterprise-calc__step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.enterprise-calc__step:hover:not(:disabled) {
+  border-color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, var(--color-surface));
+  color: var(--color-brand-primary);
+}
+
+.enterprise-calc__step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.enterprise-calc__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.enterprise-calc__input {
+  width: 100%;
+  height: 2rem;
+  padding: 0 3.2rem 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -moz-appearance: textfield;
+}
+
+.enterprise-calc__input::-webkit-outer-spin-button,
+.enterprise-calc__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.enterprise-calc__input:focus {
+  outline: none;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 25%, transparent);
+}
+
+.enterprise-calc__unit {
+  position: absolute;
+  right: 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.enterprise-calc__presets {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.enterprise-calc__chip {
+  padding: 0.18rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.enterprise-calc__chip:hover {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 40%, var(--color-border));
+}
+
+.enterprise-calc__chip.is-active {
+  border-color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 16%, transparent);
+  color: var(--color-brand-primary);
   font-weight: 700;
 }
 
@@ -624,6 +877,10 @@ function renderHighlight(text: string) {
 @media (prefers-reduced-motion: reduce) {
   .plan.is-popular {
     transform: none;
+  }
+
+  .country-slider__glider {
+    transition: none;
   }
 }
 </style>
