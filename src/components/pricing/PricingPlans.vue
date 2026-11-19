@@ -188,11 +188,11 @@ function renderHighlight(text: string) {
                   :aria-checked="country === 'Canada'"
                   class="country-slider__btn"
                   :class="{ 'is-active': country === 'Canada' }"
+                  aria-label="Canada (CAD)"
+                  title="Canada (CAD)"
                   @click="handleCountrySelect('Canada')"
                 >
                   <span class="country-slider__flag">🇨🇦</span>
-                  <span class="country-slider__name">Canada</span>
-                  <span class="country-slider__badge">CAD</span>
                 </button>
 
                 <button
@@ -201,11 +201,11 @@ function renderHighlight(text: string) {
                   :aria-checked="country === 'USA'"
                   class="country-slider__btn"
                   :class="{ 'is-active': country === 'USA' }"
+                  aria-label="USA (USD)"
+                  title="USA (USD)"
                   @click="handleCountrySelect('USA')"
                 >
                   <span class="country-slider__flag">🇺🇸</span>
-                  <span class="country-slider__name">USA</span>
-                  <span class="country-slider__badge">USD</span>
                 </button>
               </div>
             </div>
@@ -437,59 +437,35 @@ function renderHighlight(text: string) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
   min-height: 2.25rem;
-  padding: 0 0.85rem;
+  min-width: 2.6rem;
+  padding: 0 0.75rem;
   border: none;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.84rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s ease;
-  white-space: nowrap;
-}
-
-.country-slider__btn:hover {
-  color: var(--color-text);
-}
-
-.country-slider__btn.is-active {
-  color: var(--color-text);
-  font-weight: 700;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .country-slider__flag {
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   line-height: 1;
-  transition: transform 0.25s ease;
-}
-
-.country-slider__btn:hover .country-slider__flag,
-.country-slider__btn.is-active .country-slider__flag {
-  transform: scale(1.08);
-}
-
-.country-slider__name {
-  letter-spacing: -0.01em;
-}
-
-.country-slider__badge {
   display: inline-block;
-  padding: 0.1rem 0.38rem;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
-  color: var(--color-brand-primary);
-  font-size: 0.6875rem;
-  font-weight: 750;
-  letter-spacing: 0.03em;
-  transition: all 0.2s ease;
+  opacity: 0.5;
+  filter: grayscale(25%);
+  transition: transform 0.22s ease, opacity 0.22s ease, filter 0.22s ease;
 }
 
-.country-slider__btn.is-active .country-slider__badge {
-  background: var(--color-brand-primary);
-  color: #051315;
+.country-slider__btn:hover .country-slider__flag {
+  opacity: 0.85;
+  filter: grayscale(0%);
+  transform: scale(1.1);
+}
+
+.country-slider__btn.is-active .country-slider__flag {
+  opacity: 1;
+  filter: grayscale(0%);
+  transform: scale(1.18);
 }
 
 /* Billing Cycle Toggle */
