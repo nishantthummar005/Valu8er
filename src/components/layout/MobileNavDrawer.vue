@@ -43,7 +43,7 @@ watch(
   async (isOpen) => {
     if (isOpen) {
       lastFocus.value = document.activeElement as HTMLElement
-      const match = primaryNav.find((item) => item.children && isNavActive(route.path, item.to))
+      const match = primaryNav.find((item) => item.children && isNavActive(route.path, item.to, item.children))
       expanded.value = match?.label ?? null
       await nextTick()
       panel.value?.querySelector<HTMLElement>('.mobile-drawer__close')?.focus()
@@ -128,7 +128,7 @@ const onKeydown = (event: KeyboardEvent) => {
             <div v-if="item.children?.length" class="mobile-drawer__group">
               <button
                 class="mobile-drawer__item mobile-drawer__item--toggle"
-                :class="{ 'is-active': isNavActive(route.path, item.to) }"
+                :class="{ 'is-active': isNavActive(route.path, item.to, item.children) }"
                 :aria-expanded="expanded === item.label"
                 @click="toggleSection(item)"
               >

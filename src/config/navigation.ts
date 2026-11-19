@@ -21,11 +21,16 @@ export const primaryNav: NavItem[] = [
   { label: 'About Us', to: '/about' },
   { label: 'Platform', to: '/platform' },
   { label: 'Pricing', to: '/pricing' },
-  { label: 'CCF Calculator', to: '/ccf-calculator' },
   {
-    label: 'Methodology',
-    to: '/methodology',
+    label: 'Notional Valuation',
+    to: '/notional-valuation',
     children: [
+      {
+        label: 'CCF Calculator',
+        to: '/ccf-calculator',
+        icon: 'mdi-calculator-variant-outline',
+        description: 'Capitalized cash flow & open market reality',
+      },
       {
         label: 'Methodology Tree',
         to: '/methodology/tree',
@@ -105,7 +110,11 @@ export const footerTrust = [
   { label: 'Report-ready outputs', icon: 'reports' },
 ]
 
-export function isNavActive(path: string, to: string) {
+export function isNavActive(path: string, to: string, children?: NavChild[]) {
   if (to === '/') return path === '/'
-  return path === to || path.startsWith(`${to}/`)
+  if (path === to || path.startsWith(`${to}/`)) return true
+  if (children?.length) {
+    return children.some((child) => path === child.to || path.startsWith(`${child.to}/`))
+  }
+  return false
 }

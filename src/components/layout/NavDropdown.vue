@@ -108,11 +108,11 @@ onUnmounted(() => {
       type="button"
       class="nav-dropdown__trigger"
       :class="{
-        'is-active': isNavActive(route.path, item.to),
+        'is-active': isNavActive(route.path, item.to, item.children),
         'is-open': open,
       }"
       :aria-expanded="open"
-      :aria-controls="`nav-panel-${item.label.toLowerCase()}`"
+      :aria-controls="`nav-panel-${item.label.toLowerCase().replace(/\s+/g, '-')}`"
       aria-haspopup="true"
       @click="toggleMenu"
       @keydown="onKeydown"
@@ -122,7 +122,7 @@ onUnmounted(() => {
     </button>
     <div
       v-if="open"
-      :id="`nav-panel-${item.label.toLowerCase()}`"
+      :id="`nav-panel-${item.label.toLowerCase().replace(/\s+/g, '-')}`"
       ref="panel"
       class="nav-dropdown__panel"
       role="menu"

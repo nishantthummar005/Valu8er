@@ -72,6 +72,10 @@ export const router = createRouter({
           meta: { title: 'Pricing', eyebrow: 'Website' },
         },
         {
+          path: 'notional-valuation',
+          redirect: '/ccf-calculator',
+        },
+        {
           path: 'ccf-calculator',
           name: 'ccf-calculator',
           component: () => import('@/pages/CcfCalculatorPage.vue'),
