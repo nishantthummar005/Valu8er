@@ -169,7 +169,6 @@ function renderHighlight(text: string) {
           <div class="plans__toolbar">
             <!-- Country Toggle with Sliding Animation -->
             <div class="country-slider-wrap">
-              <span class="country-slider-label">Country:</span>
               <div
                 class="country-slider"
                 role="radiogroup"
