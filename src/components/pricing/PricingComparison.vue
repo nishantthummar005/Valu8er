@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppContainer from '@/components/ui/AppContainer.vue'
 import AppSection from '@/components/ui/AppSection.vue'
+import ChartIcon from '@/components/ui/ChartIcon.vue'
 import { useReveal } from '@/composables/useReveal'
 import { featureGroups, type FeatureCell } from '@/data/pricingDemo'
 
@@ -15,7 +16,7 @@ const visibleGroups = computed(() => (expanded.value ? featureGroups : featureGr
 function cellClass(value: FeatureCell) {
   if (value === true) return 'is-yes'
   if (value === false) return 'is-empty'
-  if (value === '—') return 'is-dash'
+  if (value === '—' || value === 'chart') return 'is-chart'
   return 'is-text'
 }
 </script>
@@ -57,25 +58,25 @@ function cellClass(value: FeatureCell) {
                   </th>
                   <td :class="cellClass(row.tablesOnly)">
                     <span v-if="row.tablesOnly === true" class="compare__check">✓</span>
-                    <span v-else-if="row.tablesOnly === '—'" class="compare__dash" title="Chart / Graph indicator">—</span>
+                    <ChartIcon v-else-if="row.tablesOnly === '—' || row.tablesOnly === 'chart'" />
                     <span v-else-if="row.tablesOnly === false" class="compare__empty"></span>
                     <span v-else class="compare__text">{{ row.tablesOnly }}</span>
                   </td>
                   <td :class="cellClass(row.briefReport)">
                     <span v-if="row.briefReport === true" class="compare__check">✓</span>
-                    <span v-else-if="row.briefReport === '—'" class="compare__dash" title="Chart / Graph indicator">—</span>
+                    <ChartIcon v-else-if="row.briefReport === '—' || row.briefReport === 'chart'" />
                     <span v-else-if="row.briefReport === false" class="compare__empty"></span>
                     <span v-else class="compare__text">{{ row.briefReport }}</span>
                   </td>
                   <td :class="cellClass(row.intermediate)">
                     <span v-if="row.intermediate === true" class="compare__check">✓</span>
-                    <span v-else-if="row.intermediate === '—'" class="compare__dash" title="Chart / Graph indicator">—</span>
+                    <ChartIcon v-else-if="row.intermediate === '—' || row.intermediate === 'chart'" />
                     <span v-else-if="row.intermediate === false" class="compare__empty"></span>
                     <span v-else class="compare__text">{{ row.intermediate }}</span>
                   </td>
                   <td :class="cellClass(row.advanced)">
                     <span v-if="row.advanced === true" class="compare__check">✓</span>
-                    <span v-else-if="row.advanced === '—'" class="compare__dash" title="Chart / Graph indicator">—</span>
+                    <ChartIcon v-else-if="row.advanced === '—' || row.advanced === 'chart'" />
                     <span v-else-if="row.advanced === false" class="compare__empty"></span>
                     <span v-else class="compare__text">{{ row.advanced }}</span>
                   </td>
@@ -204,8 +205,9 @@ function cellClass(value: FeatureCell) {
   color: var(--color-brand-primary);
 }
 
-.compare__table td.is-dash {
-  color: var(--color-text-muted);
+.compare__table td.is-chart {
+  vertical-align: middle;
+  padding: 0.65rem 0.75rem;
 }
 
 .compare__table td.is-text {
