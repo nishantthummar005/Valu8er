@@ -7,8 +7,8 @@ import { useThemeStore } from '@/stores/theme'
 
 const theme = useThemeStore()
 
-// Launch Target Date: February 1, 2027
-const targetDate = new Date('2027-02-01T00:00:00')
+// Launch Target Date: January 1, 2027
+const targetDate = new Date('2027-01-01T00:00:00')
 
 function calculateTimeLeft() {
   const now = new Date().getTime()
