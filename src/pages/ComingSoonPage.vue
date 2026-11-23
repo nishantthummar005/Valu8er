@@ -242,24 +242,7 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Schedule Appointment CTA Section -->
-        <div class="hero-cta-section">
-          <a
-            href="https://calendly.com/rim-valexp/valu8er-demo-1pm-est"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="hero-schedule-btn"
-          >
-            <span class="btn-shimmer" aria-hidden="true" />
-            <v-icon icon="mdi-calendar-check" size="20" class="btn-icon" />
-            <span class="btn-text">Schedule Appointment</span>
-            <v-icon icon="mdi-open-in-new" size="16" class="btn-external" />
-          </a>
-          <p class="hero-cta-subtext">
-            <v-icon icon="mdi-clock-outline" size="14" class="subtext-icon" />
-            <span>1-on-1 Live Walkthrough & Consultation with Rim Grewal</span>
-          </p>
-        </div>
+
       </div>
     </main>
 
