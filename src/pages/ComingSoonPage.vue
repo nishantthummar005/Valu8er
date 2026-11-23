@@ -1,39 +1,40 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import { useThemeStore } from '@/stores/theme'
 
 const theme = useThemeStore()
 
-// Launch Target Date: 10 days from now
-const targetDate = new Date()
-targetDate.setDate(targetDate.getDate() + 10)
+// Launch Target Date: February 1, 2027
+const targetDate = new Date('2027-02-01T00:00:00')
 
-const timeLeft = ref({
-  days: 10,
-  hours: 0,
-  minutes: 0,
-  seconds: 0,
-})
-
-let timerInterval: ReturnType<typeof setInterval> | null = null
-
-function updateCountdown() {
+function calculateTimeLeft() {
   const now = new Date().getTime()
   const distance = targetDate.getTime() - now
 
   if (distance <= 0) {
-    timeLeft.value = { days: 0, hours: 0, minutes: 0, seconds: 0 }
-    if (timerInterval) clearInterval(timerInterval)
-    return
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 }
   }
 
-  timeLeft.value = {
+  return {
     days: Math.floor(distance / (1000 * 60 * 60 * 24)),
     hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
     minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
     seconds: Math.floor((distance % (1000 * 60)) / 1000),
+  }
+}
+
+const timeLeft = ref(calculateTimeLeft())
+
+let timerInterval: ReturnType<typeof setInterval> | null = null
+
+function updateCountdown() {
+  const next = calculateTimeLeft()
+  timeLeft.value = next
+  if (next.days === 0 && next.hours === 0 && next.minutes === 0 && next.seconds === 0) {
+    if (timerInterval) clearInterval(timerInterval)
   }
 }
 
@@ -249,7 +250,9 @@ onUnmounted(() => {
     <!-- Footer -->
     <footer class="coming-soon__footer">
       <div class="footer-container">
-        <span class="footer-copy">© {{ currentYear }} Valu8er Inc. All rights reserved.</span>
+        <RouterLink to="/home" class="footer-copy">
+          © {{ currentYear }} Valu8er Inc. All rights reserved.
+        </RouterLink>
       </div>
     </footer>
   </div>
@@ -1403,10 +1406,30 @@ onUnmounted(() => {
 .footer-copy {
   font-size: 0.8125rem;
   color: var(--color-text-secondary, #4B5B74);
+  text-decoration: none !important;
+  cursor: pointer;
+  user-select: none;
+}
+
+.footer-copy:hover,
+.footer-copy:visited,
+.footer-copy:active,
+.footer-copy:focus {
+  color: var(--color-text-secondary, #4B5B74);
+  text-decoration: none !important;
+  outline: none;
 }
 
 .coming-soon.is-dark .footer-copy {
   color: #8494AB;
+}
+
+.coming-soon.is-dark .footer-copy:hover,
+.coming-soon.is-dark .footer-copy:visited,
+.coming-soon.is-dark .footer-copy:active,
+.coming-soon.is-dark .footer-copy:focus {
+  color: #8494AB;
+  text-decoration: none !important;
 }
 
 /* ==============================================================================
