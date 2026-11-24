@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import PublicLayout from '@/layouts/PublicLayout.vue'
 import FoundationLayout from '@/layouts/FoundationLayout.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const page = (path: string, name: string, title: string, eyebrow: string): RouteRecordRaw => ({
   path,
@@ -201,4 +202,13 @@ export const router = createRouter({
       redirect: '/',
     },
   ],
+})
+
+router.beforeEach((to) => {
+  if (to.path === '/login') {
+    const authStore = useAuthStore()
+    if (authStore.isAuthenticated || authStore.user) {
+      authStore.clearSession()
+    }
+  }
 })

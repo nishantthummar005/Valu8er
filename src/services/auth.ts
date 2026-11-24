@@ -110,7 +110,13 @@ export async function requestSsoLogin(
  */
 export const SSO_LOGOUT_API_URL = 'https://valu8er.instaging.net/api/v1/sso/logout'
 
-export async function requestSsoLogout(token?: string | null): Promise<void> {
+export interface SsoLogoutResponse {
+  status: string
+  message: string
+  web_logout_url?: string
+}
+
+export async function requestSsoLogout(token?: string | null): Promise<SsoLogoutResponse | null> {
   const endpoints = [
     SSO_LOGOUT_API_URL,
     '/api/v1/sso/logout',
@@ -129,7 +135,7 @@ export async function requestSsoLogout(token?: string | null): Promise<void> {
 
   for (const url of endpoints) {
     try {
-      await axios.post(
+      const response = await axios.post<SsoLogoutResponse>(
         url,
         payload,
         {
@@ -137,11 +143,13 @@ export async function requestSsoLogout(token?: string | null): Promise<void> {
           timeout: 6000,
         },
       )
-      return
+      return response.data || { status: 'success', message: 'Successfully logged out.' }
     } catch {
       // Continue to next endpoint or silently proceed
     }
   }
+
+  return null
 }
 
 /**

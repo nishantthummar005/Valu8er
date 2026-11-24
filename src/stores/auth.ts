@@ -88,6 +88,18 @@ export const useAuthStore = defineStore('auth', () => {
     } catch {}
   }
 
+  function clearSession() {
+    clearPendingAuth()
+    user.value = null
+    token.value = null
+    consumeUrl.value = null
+    tokenConsumed.value = false
+    localStorage.removeItem(STORAGE_USER_KEY)
+    localStorage.removeItem(STORAGE_TOKEN_KEY)
+    localStorage.removeItem(STORAGE_CONSUME_KEY)
+    localStorage.removeItem(STORAGE_CONSUMED_KEY)
+  }
+
   function setSession(authData: { user?: AuthUser; token?: string; consume_url?: string }) {
     clearPendingAuth()
     if (authData.user) {
@@ -111,22 +123,25 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout(): Promise<void> {
     isLoggingOut.value = true
     const currentToken = token.value
+    let webLogoutUrl: string | null = null
 
     try {
-      await requestSsoLogout(currentToken)
+      const response = await requestSsoLogout(currentToken)
+      if (response?.web_logout_url) {
+        webLogoutUrl = response.web_logout_url
+      }
     } catch (err) {
       console.warn('Logout API warning:', err)
     } finally {
-      clearPendingAuth()
-      user.value = null
-      token.value = null
-      consumeUrl.value = null
-      tokenConsumed.value = false
-      localStorage.removeItem(STORAGE_USER_KEY)
-      localStorage.removeItem(STORAGE_TOKEN_KEY)
-      localStorage.removeItem(STORAGE_CONSUME_KEY)
-      localStorage.removeItem(STORAGE_CONSUMED_KEY)
+      clearSession()
       isLoggingOut.value = false
+    }
+
+    if (webLogoutUrl) {
+      // Ping web_logout_url to clear backend session cookies on the instaging domain
+      try {
+        fetch(webLogoutUrl, { mode: 'no-cors', credentials: 'include' }).catch(() => {})
+      } catch {}
     }
   }
 
@@ -156,6 +171,7 @@ export const useAuthStore = defineStore('auth', () => {
     setPendingAuth,
     clearPendingAuth,
     setSession,
+    clearSession,
     logout,
     openDashboard,
   }

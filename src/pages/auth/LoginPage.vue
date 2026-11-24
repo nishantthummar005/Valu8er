@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import AuthFormCard from '@/components/auth/AuthFormCard.vue'
 import PasswordField from '@/components/auth/PasswordField.vue'
@@ -13,6 +13,12 @@ import { isValidEmail } from '@/utils/validation'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+onMounted(() => {
+  if (authStore.isAuthenticated || authStore.user) {
+    authStore.clearSession()
+  }
+})
 
 const form = reactive({
   email: '',
