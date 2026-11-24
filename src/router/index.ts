@@ -137,6 +137,18 @@ export const router = createRouter({
       ],
     },
     {
+      path: '/verify-otp',
+      component: AuthLayout,
+      children: [
+        {
+          path: '',
+          name: 'verify-otp',
+          component: () => import('@/pages/auth/VerifyOtpPage.vue'),
+          meta: { title: 'Verify OTP' },
+        },
+      ],
+    },
+    {
       path: '/get-started',
       component: AuthLayout,
       children: [

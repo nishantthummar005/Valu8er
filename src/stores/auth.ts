@@ -2,14 +2,32 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { requestSsoLogout, type AuthUser } from '@/services/auth'
 
+export interface PendingAuth {
+  email: string
+  token?: string
+  consume_url?: string
+  user?: AuthUser
+  phone?: string | null
+}
+
 const STORAGE_USER_KEY = 'valu8er_auth_user'
 const STORAGE_TOKEN_KEY = 'valu8er_auth_token'
 const STORAGE_CONSUME_KEY = 'valu8er_consume_url'
 const STORAGE_CONSUMED_KEY = 'valu8er_token_consumed'
+const STORAGE_PENDING_AUTH_KEY = 'valu8er_pending_auth'
 
 function readStoredUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem(STORAGE_USER_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function readPendingAuth(): PendingAuth | null {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_PENDING_AUTH_KEY)
     return raw ? JSON.parse(raw) : null
   } catch {
     return null
@@ -21,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem(STORAGE_TOKEN_KEY))
   const consumeUrl = ref<string | null>(localStorage.getItem(STORAGE_CONSUME_KEY))
   const tokenConsumed = ref<boolean>(localStorage.getItem(STORAGE_CONSUMED_KEY) === 'true')
+  const pendingAuth = ref<PendingAuth | null>(readPendingAuth())
 
   const isAuthenticated = computed(() => Boolean(user.value))
 
@@ -53,7 +72,24 @@ export const useAuthStore = defineStore('auth', () => {
     return `${first}${last}`.trim() || first
   })
 
+  function setPendingAuth(data: PendingAuth) {
+    pendingAuth.value = data
+    try {
+      sessionStorage.setItem(STORAGE_PENDING_AUTH_KEY, JSON.stringify(data))
+    } catch (e) {
+      console.warn('Could not store pendingAuth', e)
+    }
+  }
+
+  function clearPendingAuth() {
+    pendingAuth.value = null
+    try {
+      sessionStorage.removeItem(STORAGE_PENDING_AUTH_KEY)
+    } catch {}
+  }
+
   function setSession(authData: { user?: AuthUser; token?: string; consume_url?: string }) {
+    clearPendingAuth()
     if (authData.user) {
       user.value = authData.user
       localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(authData.user))
@@ -81,6 +117,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       console.warn('Logout API warning:', err)
     } finally {
+      clearPendingAuth()
       user.value = null
       token.value = null
       consumeUrl.value = null
@@ -108,6 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     consumeUrl,
     tokenConsumed,
+    pendingAuth,
     isAuthenticated,
     displayName,
     fullName,
@@ -115,6 +153,8 @@ export const useAuthStore = defineStore('auth', () => {
     organizationName,
     initials,
     isLoggingOut,
+    setPendingAuth,
+    clearPendingAuth,
     setSession,
     logout,
     openDashboard,

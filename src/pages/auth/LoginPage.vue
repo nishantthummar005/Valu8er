@@ -74,11 +74,20 @@ const onSubmit = async () => {
       password: form.password,
     })
 
-    // 2. Save authenticated session in Pinia store and localStorage
-    authStore.setSession(result)
+    // 2. Save pending authentication session for OTP verification
+    authStore.setPendingAuth({
+      email: form.email.trim(),
+      token: result.token,
+      consume_url: result.consume_url,
+      user: result.user,
+      phone: result.user?.phone || null,
+    })
 
-    // 3. Navigate user to home page with top menu showing user greeting & dropdown
-    await router.push('/home')
+    // 3. Navigate user to OTP verification page
+    await router.push({
+      path: '/verify-otp',
+      query: { email: form.email.trim() },
+    })
   } catch (error: any) {
     loading.value = false
     console.error('Login failed', error)
