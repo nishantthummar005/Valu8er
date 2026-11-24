@@ -41,7 +41,7 @@ function updateCountdown() {
 const currentYear = computed(() => new Date().getFullYear())
 
 onMounted(() => {
-  document.title = 'Coming Soon — Valu8er'
+  document.title = 'Version 3.0 Coming Soon — Valu8er'
   updateCountdown()
   timerInterval = setInterval(updateCountdown, 1000)
 })
@@ -177,22 +177,13 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Launch Badge with Shimmer Sheen -->
-        <div class="launch-pill">
-          <span class="launch-pill__shimmer" />
-          <span class="launch-pill__icon">
-            <v-icon icon="mdi-sparkles" size="14" />
-          </span>
-          <span class="launch-pill__text">Next-Gen Valuation Platform</span>
-        </div>
-
         <!-- Headline & Subtitle -->
         <h1 class="hero-headline">
-          <span class="headline-gradient">Coming soon.</span>
+          <span class="headline-gradient">Version 3.0 Coming Soon</span>
         </h1>
 
         <p class="hero-subtitle">
-          Valu8er combines guided valuation modeling, automated market comparables, and delivery-ready executive reports into one seamless experience.
+          The Trusted Business Valuation Report Generation Platform built in accordance with IVS 103 to arrive and demonstrate a Bona Fide Attempt at FMV for Canadian Tax Planning and the Lifetime Capital Gains Exemption
         </p>
 
         <!-- Futuristic HUD Countdown Clock (10 Days) -->
@@ -1129,7 +1120,7 @@ onUnmounted(() => {
   line-height: 1.65;
   color: var(--color-text-secondary, #4B5B74);
   margin: 0 0 3.25rem 0;
-  max-width: 660px;
+  max-width: 800px;
 }
 
 .coming-soon.is-dark .hero-subtitle {
